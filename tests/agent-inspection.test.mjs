@@ -24,7 +24,12 @@ test("Agent overview Inspect leads to interaction inspection without a drilldown
   assert.match(detail,/Evaluation Results/);
   assert.match(detail,/75%/);
   assert.match(detail,/id="closeInspection"/);
-  assert.doesNotMatch(detail,/AGENT DRILLDOWN|PERFORMANCE INTELLIGENCE/);
+  assert.match(detail,/PERFORMANCE INTELLIGENCE/);
+  assert.ok(detail.indexOf("PERFORMANCE INTELLIGENCE") < detail.indexOf("INTERACTION INSPECTION"),
+    "Interaction Inspection must render beneath Performance Intelligence");
+  assert.match(detail,/data-agent="Sample Agent"/);
+  assert.equal((detail.match(/qa-agent-inspection/g)||[]).length,1);
+  assert.doesNotMatch(detail,/AGENT DRILLDOWN/);
   assert.doesNotMatch(detail,/id="inspection-interaction"/);
 });
 
@@ -37,6 +42,9 @@ test("Multiple interactions have an in-inspection selector and preserve the sele
   assert.match(selector,/value="qa:2" selected/);
   assert.doesNotMatch(selector,/value="qa:3"/);
   assert.match(detail,/2 interactions for Sample Agent/);
+  assert.ok(detail.indexOf("PERFORMANCE INTELLIGENCE") < detail.indexOf("INTERACTION INSPECTION"));
+  assert.equal((detail.match(/PERFORMANCE INTELLIGENCE/g)||[]).length,1);
+  assert.equal((detail.match(/INTERACTION INSPECTION/g)||[]).length,1);
   assert.doesNotMatch(detail,/AGENT DRILLDOWN/);
 });
 
