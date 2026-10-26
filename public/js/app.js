@@ -776,8 +776,14 @@ root.addEventListener("click", event => {
   }
 
   if (button.dataset.agent !== undefined) {
-    state.agentFilter = button.dataset.agent;
-    state.selected = null;
+    const agent = button.dataset.agent;
+    const matches = state.calls.filter(c => c.agent === agent);
+    // Open the most recently imported completed interaction by default.
+    // A selector inside Inspection makes other interactions accessible.
+    const preferred = [...matches].reverse().find(c => c.status === "COMPLETE") || matches.at(-1);
+    state.agentFilter = agent;
+    state.selected = preferred?.key || null;
+    state.resultTab = "scorecard";
     navigate("agents");
     return;
   }
@@ -797,6 +803,7 @@ root.addEventListener("click", event => {
   }
   if (button.id === "closeInspection") {
     state.selected = null;
+    state.agentFilter = "";
     render();
     return;
   }
@@ -1030,6 +1037,15 @@ root.addEventListener(
         notify(state.importFeedback, true);
       }
 
+      return;
+    }
+
+    if (target.id === "inspection-interaction") {
+      const chosen = state.calls.find(c => c.key === target.value && c.agent === state.agentFilter);
+      if (!chosen) return;
+      state.selected = chosen.key;
+      state.resultTab = "scorecard";
+      render();
       return;
     }
 
