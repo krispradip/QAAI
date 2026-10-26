@@ -208,6 +208,15 @@ function navigate(page) {
   scrollPageToTop(window, document);
 }
 
+// When Inspect is chosen, bring the in-page assessment into view without
+// removing the Performance Intelligence overview above it.
+function revealAgentInspection() {
+  root.querySelector("#agent-inspection")?.scrollIntoView?.({
+    behavior: "smooth",
+    block: "nearest"
+  });
+}
+
 /**
  * QA-APP-FILTER
  * Filter the queue without recreating
@@ -785,6 +794,7 @@ root.addEventListener("click", event => {
     state.selected = preferred?.key || null;
     state.resultTab = "scorecard";
     navigate("agents");
+    revealAgentInspection();
     return;
   }
 
@@ -799,6 +809,7 @@ root.addEventListener("click", event => {
     state.agentFilter = state.calls.find(c => c.key === state.selected)?.agent || "";
     state.resultTab = "scorecard";
     navigate("agents");
+    revealAgentInspection();
     return;
   }
   if (button.id === "closeInspection") {
