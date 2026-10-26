@@ -830,7 +830,21 @@ export function agentsView(state) {
 
   // Agent-level Inspect opens the actual assessment. A compact selector replaces
   // the redundant second interaction table when the agent has multiple calls.
-  if (inspected) return `
+  // Keep Performance Intelligence visible; insert inspection directly beneath it.
+  return `
+    <section class="panel">
+      <div class="panel-heading">
+        <div>
+          <span class="kicker">PERFORMANCE INTELLIGENCE</span>
+          <h3>Agent QA overview</h3>
+        </div>
+        <div class="toolbar">
+          <button class="secondary" data-page-go="studio">+ Evaluate interactions</button>
+        </div>
+      </div>
+      ${tableAgents(calls)}
+    </section>
+    ${inspected ? `
     <section class="panel qa-agent-inspection" id="agent-inspection">
       <div class="panel-heading">
         <div>
@@ -872,24 +886,9 @@ export function agentsView(state) {
         ` : ""}
         ${callDetail(inspected, state.rubric, state.resultTab || "scorecard")}
     </section>
-  `;
-
-  return `
-    <section class="panel">
-      <div class="panel-heading">
-        <div>
-          <span class="kicker">PERFORMANCE INTELLIGENCE</span>
-          <h3>Agent QA overview</h3>
-        </div>
-        <div class="toolbar">
-          <button class="secondary" data-page-go="studio">+ Evaluate interactions</button>
-        </div>
-      </div>
-      ${tableAgents(calls)}
-    </section>
+    ` : ""}
   `;
 }
-
 /**
  * QA-UI-CONFIG
  * Editable 7-category, 27-parameter QA rubric.
