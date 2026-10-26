@@ -826,110 +826,46 @@ export function callDetail(call, rubric, tab = "scorecard") {
 export function agentsView(state) {
   const { calls, agentFilter } = state;
   const inspected = calls.find(c => c.key === state.selected && (!agentFilter || c.agent === agentFilter));
+  const agentCalls = inspected ? calls.filter(c => c.agent === inspected.agent) : [];
+
+  // Keep Performance Intelligence visible; render the selected interaction's
+  // assessment immediately below it, without an intermediate drilldown table.
   return `
     <section class="panel">
       <div class="panel-heading">
         <div>
-          <span class="kicker">
-            PERFORMANCE INTELLIGENCE
-          </span>
-
+          <span class="kicker">PERFORMANCE INTELLIGENCE</span>
           <h3>Agent QA overview</h3>
         </div>
-
         <div class="toolbar">
           <button class="secondary" data-page-go="studio">+ Evaluate interactions</button>
           ${agentFilter ? `<button class="secondary" id="rerunAgent" ${state.running || !calls.some(c=>c.agent===agentFilter && ["READY","ERROR","COMPLETE"].includes(c.status))?"disabled":""}>↻ Reassess this agent</button>` : ""}
         </div>
       </div>
-
       ${tableAgents(calls)}
     </section>
-
-    ${agentFilter ? `
-      <section class="panel">
-        <div class="panel-heading">
-          <div>
-            <span class="kicker">
-              AGENT DRILLDOWN
-            </span>
-
-            <h3>
-              ${esc(agentFilter)} · Interactions
-            </h3>
-          </div>
-
-          <button class="link"
-            id="clearAgent">
-            Clear filter ×
-          </button>
-        </div>
-
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>INTERACTION</th>
-                <th>DURATION</th>
-                <th>QA</th>
-                <th>COVERAGE</th>
-                <th>STATUS</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              ${calls
-                .filter(c =>
-                  c.agent === agentFilter
-                )
-                .map(c => `
-                  <tr>
-                    <td>
-                      ${esc(c.id || c.key)}
-                    </td>
-
-                    <td>
-                      ${esc(c.duration || "—")}
-                    </td>
-
-                    <td>
-                      ${fmt(c.score?.score)}
-                    </td>
-
-                    <td>
-                      ${fmt(c.score?.coverage)}
-                    </td>
-
-                    <td>
-                      ${chip(c.status)}
-                    </td>
-
-                    <td>
-                      <button class="link"
-                        data-open="${esc(c.key)}">
-                        Inspect →
-                      </button>
-                    </td>
-                  </tr>
-                `).join("")}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    ` : `
-      <div class="notice">
-        Select an agent using Inspect to review
-        every imported call separately.
-      </div>
-    `}
     ${inspected ? `
-      <section class="panel qa-agent-inspection" id="agent-inspection">
-        <div class="panel-heading"><div><span class="kicker">INTERACTION INSPECTION</span>
+    <section class="panel qa-agent-inspection" id="agent-inspection">
+      <div class="panel-heading">
+        <div>
+          <span class="kicker">INTERACTION INSPECTION</span>
           <h3>${esc(inspected.agent)} · ${esc(inspected.id || inspected.key)}</h3>
           <p class="muted">Criterion-by-criterion rubric findings, met and missed checkpoints, verification and transcript evidence.</p>
           <p class="muted">Assessment rubric revision: ${esc(inspected.meta?.rubricRevision ?? "Not recorded")}</p>
-        </div><button class="secondary" type="button" id="closeInspection">Close inspection ×</button></div>
+        </div>
+        <div class="toolbar">
+          <button class="secondary" type="button" id="closeInspection">Close inspection ×</button>
+        </div>
+      </div>
+      ${agentCalls.length > 1 ? `
+        <div class="qa-inspection-selector">
+          <label for="inspection-interaction">View interaction</label>
+          <select id="inspection-interaction" aria-label="Choose interaction to inspect">
+            ${agentCalls.map(c => `<option value="${esc(c.key)}" ${c.key===inspected.key?"selected":""}>${esc(c.id || c.key)} · ${esc(c.status)}</option>`).join("")}
+          </select>
+          <span class="muted">${agentCalls.length} interactions for ${esc(inspected.agent)}</span>
+        </div>
+      ` : ""}
         ${inspected.assessmentHistory?.length ? `
           <div class="panel qa-reassessment-comparison">
             <h3>Assessment comparison</h3>
@@ -948,11 +884,10 @@ export function agentsView(state) {
           </div>
         ` : ""}
         ${callDetail(inspected, state.rubric, state.resultTab || "scorecard")}
-      </section>
+    </section>
     ` : ""}
   `;
 }
-
 /**
  * QA-UI-CONFIG
  * Editable 7-category, 27-parameter QA rubric.
