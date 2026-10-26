@@ -828,9 +828,8 @@ export function agentsView(state) {
   const inspected = calls.find(c => c.key === state.selected && (!agentFilter || c.agent === agentFilter));
   const agentCalls = inspected ? calls.filter(c => c.agent === inspected.agent) : [];
 
-  // Agent-level Inspect opens the actual assessment. A compact selector replaces
-  // the redundant second interaction table when the agent has multiple calls.
-  // Keep Performance Intelligence visible; insert inspection directly beneath it.
+  // Keep Performance Intelligence visible; render the selected interaction's
+  // assessment immediately below it, without an intermediate drilldown table.
   return `
     <section class="panel">
       <div class="panel-heading">
@@ -840,6 +839,7 @@ export function agentsView(state) {
         </div>
         <div class="toolbar">
           <button class="secondary" data-page-go="studio">+ Evaluate interactions</button>
+          ${agentFilter ? `<button class="secondary" id="rerunAgent" ${state.running || !calls.some(c=>c.agent===agentFilter && ["READY","ERROR","COMPLETE"].includes(c.status))?"disabled":""}>↻ Reassess this agent</button>` : ""}
         </div>
       </div>
       ${tableAgents(calls)}
@@ -854,8 +854,7 @@ export function agentsView(state) {
           <p class="muted">Assessment rubric revision: ${esc(inspected.meta?.rubricRevision ?? "Not recorded")}</p>
         </div>
         <div class="toolbar">
-          ${agentFilter ? `<button class="secondary" id="rerunAgent" ${state.running || !calls.some(c=>c.agent===agentFilter && ["READY","ERROR","COMPLETE"].includes(c.status))?"disabled":""}>↻ Reassess this agent</button>` : ""}
-          <button class="secondary" type="button" id="closeInspection">← Agent QA overview</button>
+          <button class="secondary" type="button" id="closeInspection">Close inspection ×</button>
         </div>
       </div>
       ${agentCalls.length > 1 ? `
