@@ -1930,3 +1930,24 @@ body:has(.studio-v5) .topbar{margin-bottom:14px;padding:0 0 12px;border-bottom:1
  .studio-v5 .studio-queue-row .panel-heading>.filters{order:3;min-width:0}
  .studio-v5 .studio-queue-row .panel-heading>.filters select{flex-basis:108px}
 }
+
+/* QA-INSPECTION-DIRECT | Switch interactions inside the inspection, no extra drilldown table. */
+.qa-agent-inspection .qa-inspection-selector{
+  display:flex;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:12px 15px;margin:12px 0 16px;
+  border:1px solid #f1dfe7;border-radius:11px;background:#fff8fb;
+}
+.qa-agent-inspection .qa-inspection-selector label{
+  font-size:11px;font-weight:800;color:#69344b;
+}
+.qa-agent-inspection .qa-inspection-selector select{
+  flex:1 1 270px;max-width:620px;min-width:0;
+  padding:9px 11px;border:1px solid #e9ccd9;border-radius:8px;background:#fff;
+  font-size:11px;color:#6c2e46;
+}
+.qa-agent-inspection .qa-inspection-selector .muted{font-size:10px;}
+.qa-agent-inspection>.panel-heading .toolbar{display:flex;flex-wrap:wrap;gap:8px;}
+@media(max-width:700px){
+  .qa-agent-inspection .qa-inspection-selector{align-items:stretch;flex-direction:column}
+  .qa-agent-inspection .qa-inspection-selector select{flex:auto;width:100%;max-width:none}
+}
