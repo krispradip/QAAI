@@ -31,7 +31,7 @@ test("Agent overview Inspect leads to interaction inspection without a drilldown
 test("Multiple interactions have an in-inspection selector and preserve the selected assessment", () => {
   const calls=[call("qa:1","Sample Agent"),call("qa:2","Sample Agent"),call("qa:3","Other Agent")];
   const detail=agentsView({calls,agentFilter:"Sample Agent",selected:"qa:2",rubric,running:false});
-  const selector=detail.match(/<select id="inspection-interaction"[\\s\\S]*?<\\/select>/)?.[0]||"";
+  const selector=detail.slice(detail.indexOf('<select id="inspection-interaction"'),detail.indexOf("</select>")+9);
   assert.ok(selector,"Expected interaction selector inside inspection");
   assert.match(selector,/value="qa:1"/);
   assert.match(selector,/value="qa:2" selected/);
@@ -42,10 +42,10 @@ test("Multiple interactions have an in-inspection selector and preserve the sele
 
 test("Inspect action routes to an agent's completed interaction and selector switches safely",()=>{
   const js=readFileSync(new URL("../public/js/app.js",import.meta.url),"utf8");
-  assert.match(js,/const matches = state\\.calls\\.filter\\(c => c\\.agent === agent\\)/);
-  assert.match(js,/find\\(c => c\\.status === "COMPLETE"\\)/);
-  assert.match(js,/state\\.selected = preferred\\?\\.key \\|\\| null/);
-  assert.match(js,/target\\.id === "inspection-interaction"/);
-  assert.match(js,/c\\.agent === state\\.agentFilter/);
-  assert.match(js,/state\\.agentFilter = "";/);
+  assert.ok(js.includes("const matches = state.calls.filter(c => c.agent === agent)"));
+  assert.ok(js.includes('find(c => c.status === "COMPLETE")'));
+  assert.ok(js.includes("state.selected = preferred?.key || null"));
+  assert.ok(js.includes('target.id === "inspection-interaction"'));
+  assert.ok(js.includes("c.agent === state.agentFilter"));
+  assert.ok(js.includes('state.agentFilter = "";'));
 });
