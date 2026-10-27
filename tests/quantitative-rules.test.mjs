@@ -57,3 +57,30 @@ test("Interaction duration is linked to the existing rubric and defaults remain 
  assert.ok(linkedRules("systems").includes("interaction_duration"));
  assert.equal(defaultRubric().rules.deterministic.find(x=>x.id==="interaction_duration").enabled,false);
 });
+
+test("Configured opening and closing phrase checks respect time windows",()=>{
+ const transcript={turns:[
+  {speaker:"agent",text:"Thanks for calling",seconds:5,line:1},
+  {speaker:"customer",text:"Issue",seconds:10,line:2},
+  {speaker:"agent",text:"Thanks for calling",seconds:200,line:3},
+  {speaker:"agent",text:"Goodbye",seconds:250,line:4}
+ ],evidence:{interactionDurationSeconds:256}};
+ const rules={greetingTerms:["Thanks for calling"],closingTerms:["Goodbye"]};
+ assert.equal(executeRule(transcript,def("mandatory_greeting"),{value:2,operator:">="},rules).state,"MISSED");
+ assert.equal(executeRule(transcript,def("closing_statement"),{value:1,operator:">="},rules).state,"MET");
+});
+test("Fallback greeting toggles exclusively",async()=>{
+ const {setCriterionEnabled}=await import("../public/js/config.js");
+ const rubric=defaultRubric();
+ setCriterionEnabled(rubric,"greet10",true);
+ assert.equal(rubric.criteria.find(c=>c.id==="greet7").enabled,false);
+ assert.equal(rubric.rules.deterministic.find(r=>r.id==="greeting_time").enabled,false);
+ setCriterionEnabled(rubric,"greet7",true);
+ assert.equal(rubric.criteria.find(c=>c.id==="greet10").enabled,false);
+});
+test("Unsupported qualitative checkpoint evidence is downgraded even after AI reviewer confirms",async()=>{
+ const {enforceEvidencePolicy}=await import("../src/evidence-policy.js");
+ const findings=enforceEvidencePolicy([{id:"tone",anchors:[{id:"tone-1",state:"MET",evidence:[{line:1,quote:"Hello"}]}]}]);
+ assert.equal(findings[0].anchors[0].state,"UNKNOWN");
+ assert.match(findings[0].anchors[0].validation.reason,/recorded audio/);
+});
