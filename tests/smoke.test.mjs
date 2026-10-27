@@ -23,7 +23,8 @@ test("Unverifiable rubric weight does not inflate QA score", () => {
     { id:"a", status:"SCORED", score:80 },
     { id:"b", status:"UNVERIFIABLE", score:null }
   ], rubric);
-  assert.equal(s.score,80);
+  assert.equal(s.score,null);
+  assert.equal(s.observedScore,80);
   assert.equal(s.coverage,50);
   assert.equal(s.scored,1);
 });
