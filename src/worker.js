@@ -1,3 +1,4 @@
+import { enforceEvidencePolicy } from "./evidence-policy.js";
 /**
  * QA-API-001 | Qualis v2.2.0
  *
@@ -681,7 +682,7 @@ Return complete JSON matching the schema.
       version: VERSION,
       model,
 
-      findings: await validateEvidence(normalize(parsed,compact,turns),compact,turns,model,env,instructions,references)
+      findings: enforceEvidencePolicy(await validateEvidence(normalize(parsed,compact,turns),compact,turns,model,env,instructions,references))
     });
 
   } catch {

@@ -674,7 +674,7 @@ export function callDetail(call, rubric, tab = "scorecard") {
         <h3>Evaluation Results</h3>
         <p class="muted">${esc(call.agent)} · ${esc(call.id || call.key)} · ${esc(call.duration || "Duration unavailable")} · ${chip(call.status)}</p>
       </div>
-      <div class="qmf-result-head-score"><span>QA Score</span><strong>${fmt(call.score?.score)}</strong><small>Coverage ${fmt(call.score?.coverage)}</small></div>
+      <div class="qmf-result-head-score"><span>QA Score</span><strong>${fmt(call.score?.score)}</strong><small>${call.score?.score===null && Number.isFinite(call.score?.observedScore)?"Observed "+fmt(call.score.observedScore)+" · ":""}Coverage ${fmt(call.score?.coverage)}</small></div>
     </div>
     <div class="qmf-result-tabs" role="tablist" aria-label="Evaluation result views">
       ${[["scorecard","Scorecard"],["transcript","Transcript"],["timeline","Agent timeline"],["insights","Key insights"]].map(([id,label])=>`
@@ -763,11 +763,7 @@ export function callDetail(call, rubric, tab = "scorecard") {
                   }">
                     ${
                       f.score === null
-                        ? esc(
-                            f.status.replaceAll(
-                              "_", " "
-                            )
-                          )
+                        ? esc(f.status==="PARTIAL" ? `PARTIAL · ${f.coverage ?? 0}% coverage` : f.status.replaceAll("_", " "))
                         : fmt(f.score)
                     }
                   </strong>

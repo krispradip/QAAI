@@ -163,7 +163,20 @@ export function executeRule(call,def,rule,rules) {
   if(!Array.isArray(terms)||!terms.some(t=>String(t).trim()))
    return unknown("Approved "+phrases[id]+" phrase list is not configured");
   if(!turns.length)return unknown("Transcript is missing");
-  const matches=turns.filter(t=>t.speaker==="agent"&&terms.some(term=>
+  // Bound opening and closing phrase matches to their relevant time windows.
+  // Timestamp gaps do not establish holds, silence, or speech overlap.
+  const timed=turns.filter(t=>Number.isFinite(t.seconds));
+  const lastSecond=Number.isFinite(call.evidence?.interactionDurationSeconds)
+    ? call.evidence.interactionDurationSeconds : Math.max(0,...timed.map(t=>t.seconds));
+  const firstCustomer=turns.find(t=>t.speaker==="customer"&&Number.isFinite(t.seconds));
+  const relevant=turns.filter(t=>{
+    if(t.speaker!=="agent")return false;
+    if(id==="mandatory_greeting")return Number.isFinite(t.seconds) && t.seconds<=60 &&
+      (!firstCustomer || t.seconds<=firstCustomer.seconds);
+    if(id==="closing_statement")return Number.isFinite(t.seconds) && t.seconds>=Math.max(0,lastSecond-60);
+    return true;
+  });
+  const matches=relevant.filter(t=>terms.some(term=>
    term&&t.text.toLowerCase().includes(String(term).toLowerCase())));
   const operator=rule.operator || (id==="prohibited_phrase"?"<=":">=");
   const comparisons={">=":matches.length>=limit,">":matches.length>limit,"<=":matches.length<=limit,"<":matches.length<limit,"==":matches.length===limit,"!=":matches.length!==limit};
@@ -213,9 +226,9 @@ function combineCriterion(criterion,ai,checks){
   const total=applicable.reduce((sum,a)=>sum+weightFor(a),0);
   const passed=known.filter(a=>a.state==="MET").reduce((sum,a)=>sum+weightFor(a),0);
   const knownPoints=known.reduce((sum,a)=>sum+weightFor(a),0);
-  const scored=known.length>0&&knownPoints>0;
-  return {id:criterion.id,status:scored?"SCORED":!applicable.length?"NOT_APPLICABLE":"UNVERIFIABLE",
-   score:scored?Math.round(100*passed/knownPoints):null,
+  const fullyVerified=applicable.length>0 && missing.length===0 && known.length===applicable.length && knownPoints>0;
+  return {id:criterion.id,status:fullyVerified?"SCORED":!applicable.length?"NOT_APPLICABLE":known.length?"PARTIAL":"UNVERIFIABLE",
+   score:fullyVerified?Math.round(100*passed/knownPoints):null,
    coverage:total?Math.round(100*knownPoints/total):0,
    reason:missing.length?missing.map(a=>a.text+": "+(a.reason||"Evidence missing")).join("; "):
     known.map(a=>a.reason||a.text).join("; "),anchors};
@@ -367,8 +380,12 @@ export function overall(findings, rubric) {
   const observedScoreSum = relevant.filter(f=>f.status==="SCORED"&&f.score!==null)
     .reduce((sum,f)=>sum+Number(byId.get(f.id).weight)*(Math.max(0,Math.min(100,findingCoverage(f)))/100)*f.score,0);
 
+  const coverageComplete=coverageWeight>0 && observedWeight>=coverageWeight-0.0001;
+  const observedScore=observedScoreWeight ? Math.round(observedScoreSum / observedScoreWeight) : null;
   return {
-    score: observedScoreWeight ? Math.round(observedScoreSum / observedScoreWeight) : null,
+    score: coverageComplete ? observedScore : null,
+    observedScore,
+    complete: coverageComplete,
 
     coverage: coverageWeight
       ? Math.round(
@@ -423,8 +440,10 @@ export async function assess(
   // QA hierarchy: a disabled parent is never assessed, regardless of
   // stale child flags in an imported/legacy rubric. Enabled parents evaluate
   // only their individually enabled qualitative and quantitative children.
+  const primaryGreeting=rubric.criteria.some(c => c.id==="greet7" && c.enabled===true &&
+    rubric.rules.deterministic?.some(r=>r.id==="greeting_time" && r.enabled===true));
   const enabled = rubric.criteria.filter(c =>
-    c.enabled === true && (
+    c.enabled === true && !(c.id==="greet10" && primaryGreeting) && (
       c.checkpoints?.some(a=>a.enabled===true) ||
       linkedRules(c.id).some(id=>rubric.rules.deterministic?.some(r=>r.id===id&&r.enabled))
     )
