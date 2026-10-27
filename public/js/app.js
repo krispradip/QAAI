@@ -924,6 +924,9 @@ root.addEventListener("click", event => {
     const globalInstructions = root.querySelector("#global");
     if (model) state.rubric.model = model.value;
     if (globalInstructions) state.rubric.instructions = globalInstructions.value;
+    for (const input of root.querySelectorAll("[data-phrase-list]")) {
+      state.rubric.rules[input.dataset.phraseList] = input.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    }
     save("All rubric changes saved. New assessments use this revision.");
     return;
   }
