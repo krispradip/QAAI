@@ -28,7 +28,7 @@ test("Configuration has a valid operator for every catalog rule",()=>{
  }
 });
 test("Configured phrase count is binary with transcript evidence",()=>{
- const r=executeRule({turns:[{speaker:"agent",text:"Thank you for calling",line:1}]},
+ const r=executeRule({turns:[{speaker:"agent",text:"Thank you for calling",line:1,seconds:3}]},
  def("mandatory_greeting"),{id:"mandatory_greeting",value:1,operator:">="},
  {greetingTerms:["thank you for calling"]});
  assert.equal(r.state,"MET");
