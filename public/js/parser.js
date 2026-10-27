@@ -163,13 +163,18 @@ function genesysBlock(block) {
     }
   }
 
+  const duration = field("Transcript Duration");
+  const durationSeconds = seconds(duration);
   return {
     id: field("Interaction ID"),
     agent: field("Internal Participant\\(s\\)"),
-    duration: field("Transcript Duration"),
+    duration,
     start: field("Transcript Start Time"),
     type: field("Interaction Type") || "Call",
-    turns
+    turns,
+    // Use the explicit Genesys duration header; turn gaps do not prove hold/silence.
+    evidence: Number.isFinite(durationSeconds) && durationSeconds >= 0
+      ? { interactionDurationSeconds: durationSeconds } : {}
   };
 }
 
