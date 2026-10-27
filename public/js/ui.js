@@ -1005,6 +1005,13 @@ export function configuration(rubric, selected) {
         `).join("")}
       </section>
 
+      <section class="panel qa-phrase-config">
+        <div class="panel-heading"><div><span class="kicker">TRANSCRIPT RULES</span><h3>Approved phrase lists</h3></div></div>
+        <p class="muted">One approved phrase per line. Empty lists remain UNKNOWN. Text matching does not prove external events.</p>
+        ${[["disclosureTerms","Mandatory disclosure phrases"],["prohibitedTerms","Prohibited phrases"],["closingTerms","Closing phrases"]].map(([key,label])=>`
+          <label>${label}<textarea rows="3" data-phrase-list="${key}" placeholder="One phrase per line">${esc((rubric.rules[key]||[]).join("\n"))}</textarea></label>
+        `).join("")}
+      </section>
       <div class="qa-evaluator-section">
         <section class="panel">
           <div class="panel-heading">
