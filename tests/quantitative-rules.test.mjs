@@ -33,3 +33,27 @@ test("Configured phrase count is binary with transcript evidence",()=>{
  {greetingTerms:["thank you for calling"]});
  assert.equal(r.state,"MET");
 });
+
+test("Genesys duration header is normalized into verified numeric evidence", async()=>{
+ const {parseExport}=await import("../public/js/parser.js");
+ const sample="Interaction Type:\tCall\nInteraction ID:\tduration-pass\nTranscript Duration:\t04:16\nInternal Participant(s):\tTest Agent\nDate/Time\tParticipant Type\tParticipant\tText\n00:05\tInternal\tTest Agent\tHello\n00:10\tExternal\tCustomer\tHi";
+ const [call]=parseExport(sample,"call.txt");
+ assert.equal(call.evidence.interactionDurationSeconds,256);
+ const r=executeRule(call,def("interaction_duration"),{id:"interaction_duration",value:900,operator:"<="},{});
+ assert.equal(r.state,"MET");
+ assert.match(r.reason,/256/);
+});
+test("Duration 15:03 fails 900-second threshold, missing duration stays UNKNOWN",async()=>{
+ const {parseExport}=await import("../public/js/parser.js");
+ const sample="Interaction Type:\tCall\nInteraction ID:\tduration-fail\nTranscript Duration:\t15:03\nInternal Participant(s):\tTest Agent\nDate/Time\tParticipant Type\tParticipant\tText\n00:05\tInternal\tTest Agent\tHello\n00:10\tExternal\tCustomer\tHi";
+ const [call]=parseExport(sample,"call.txt");
+ assert.equal(call.evidence.interactionDurationSeconds,903);
+ assert.equal(executeRule(call,def("interaction_duration"),{id:"interaction_duration",value:900,operator:"<="},{}).state,"MISSED");
+ delete call.evidence.interactionDurationSeconds;
+ assert.equal(executeRule(call,def("interaction_duration"),{id:"interaction_duration",value:900,operator:"<="},{}).state,"UNKNOWN");
+});
+test("Interaction duration is linked to the existing rubric and defaults remain unchanged",async()=>{
+ const {linkedRules}=await import("../public/js/config.js");
+ assert.ok(linkedRules("systems").includes("interaction_duration"));
+ assert.equal(defaultRubric().rules.deterministic.find(x=>x.id==="interaction_duration").enabled,false);
+});

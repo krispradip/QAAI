@@ -64,7 +64,7 @@ export const RULE_LINKS = {
 };
 export const EXTRA_RULE_LINKS = {
   hold:["hold_single","hold_total","transfer_notice"],
-  systems:["ticket_creation","disposition_match","after_call_work","transfer_count"],
+  systems:["ticket_creation","disposition_match","after_call_work","transfer_count","interaction_duration"],
   callback:["callback_sla","escalation_sla"],
   opening:["mandatory_greeting"],
   closing:["closing_statement"],
@@ -405,6 +405,10 @@ export function defaultRubric() {
       greet7: 7,
       greet10: 10,
 
+      // Optional approved phrase lists; an empty list remains UNKNOWN, never an inferred pass.
+      disclosureTerms: [],
+      prohibitedTerms: [],
+      closingTerms: [],
       greetingTerms: [
         "hello",
         "good morning",
