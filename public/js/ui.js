@@ -1020,30 +1020,12 @@ export function configuration(rubric, selected) {
             </div>
 
             <span class="tag">
-              CLOUDFLARE SECRET
+              ENTERPRISE SECRET
             </span>
           </div>
 
-          <label>Active Gemini model</label>
-
-          <select id="model">
-            <option
-              value="gemini-3.5-flash-lite"
-              ${rubric.model ===
-                "gemini-3.5-flash-lite"
-                  ? "selected" : ""}>
-              Gemini 3.5 Flash-Lite (default)
-            </option>
-
-            <option
-              value="gemini-2.5-flash-lite"
-              ${rubric.model ===
-                "gemini-2.5-flash-lite"
-                  ? "selected" : ""}>
-              Gemini 2.5 Flash-Lite
-              (legacy access)
-            </option>
-          </select>
+          <label>Corporate AI deployment</label>
+          <select id="model"><option value="gpt-4o" selected>GPT-4o (Corporate Azure AI Foundry / APIM)</option></select>
 
           <label>
             Global evaluator instructions
