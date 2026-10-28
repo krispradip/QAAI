@@ -11,7 +11,7 @@ test("Rubric has editable Gemini instructions and checkpoints", () => {
   assert.ok(rubric.criteria.length >= 20);
   assert.ok(rubric.criteria.some(c => c.checkpoints.length > 0));
   assert.ok(rubric.instructions.length > 0);
-  assert.ok(rubric.model.startsWith("gemini-"));
+  assert.ok(rubric.model==="gpt-4o");
 });
 
 test("Unverifiable rubric weight does not inflate QA score", () => {
@@ -75,7 +75,7 @@ test("Date filtering does not erase original interaction list", () => {
 test("Cloudflare health does not disclose Gemini API key", async () => {
   const secret="test-secret-not-real";
   const res=await worker.fetch(new Request("https://qaai.example/api/health"),{
-    GEMINI_API_KEY:secret,
+    ENTERPRISE_AI_API_KEY:secret,
     ASSETS:{fetch:async()=>new Response("ok")}
   });
   assert.equal(res.status,200);
