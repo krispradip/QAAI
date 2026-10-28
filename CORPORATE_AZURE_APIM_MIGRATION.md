@@ -24,35 +24,19 @@ The company GitHub repository is inaccessible through the currently connected ac
 ## Important
 The API key pasted in chat must be rotated and replaced. The branch contains **no real credential**. No live call to the corporate endpoint was attempted. CI uses mocks only.
 
-## AWS Lambda + API Gateway deployment
-
-The company backend can run as an AWS Lambda **Node.js 22.x ESM** function:
-- Handler: `src/aws-lambda.handler` (file `src/aws-lambda.mjs`).
-- Package the repository JavaScript code and dependencies together; preserve `src/` directory structure.
-- API Gateway HTTP API proxy routes: `GET /api/health`, `POST /api/evaluate`, and `OPTIONS /api/{proxy+}`. HTTP API payload format 2.0 is supported; REST API proxy payload 1.0 is also supported. Use an authorizer for the API routes.
-- The existing frontend should remain served by its approved company host. Route `/api/*` to API Gateway or configure a **same-origin reverse proxy**. No API key belongs in frontend JavaScript.
-- Environment variable `QA_ALLOWED_ORIGINS`: comma-separated, exact HTTPS frontend origins. Configure API Gateway CORS consistently and enforce auth at the gateway; CORS alone is not an access control.
-- `ENTERPRISE_AI_ENDPOINT`: corporate APIM Chat Completions URL.
-- `ENTERPRISE_AI_API_KEY`: runtime-only secret injected using approved Secrets Manager/Vault integration. The Lambda handler fails closed if it is absent. Never configure this as a plain repository secret, public build variable or frontend value.
-- For VPC-hosted Lambda, validate private connectivity/egress, TLS/DNS and firewall approvals to reach corporate APIM.
-- Set Lambda timeout, reserved concurrency, observability, API Gateway throttling and request logging under company standards. Redact request bodies, transcripts and secrets from logs.
-- API Gateway HTTP API synchronous integration timeouts can be shorter than a full two-pass LLM evaluation. For large interactions/batches, use an approved asynchronous pattern (e.g. SQS + Lambda + DynamoDB/S3 job tracking) or an ALB-backed synchronous API after architecture review. The current adapter is **synchronous** and must be tested against timeout limits.
-- Keep existing rubric and scoring logic. The new adapter affects routing and AI transport, not scoring.
-- `npm test` includes AWS API Gateway v1/v2 event tests and corporate APIM mock tests.
-
 ## Confirmed company development frontend origin (2026-10-28)
 
 The user-provided company development application URL is:
 
 `https://qamaferai.dev.grid2.maf.ae/`
 
-Configure AWS Lambda with:
+Configure the EKS container with:
 
 ```text
 QA_ALLOWED_ORIGINS=https://qamaferai.dev.grid2.maf.ae
 ENTERPRISE_AI_ENDPOINT=https://apim-prod-ai-platform.azure-api.net/foundry-customer-care-prod/openai/v1/chat/completions
 ```
 
-Supply `ENTERPRISE_AI_API_KEY` **only** via the approved runtime secret mechanism. The frontend must use relative `/api/health` and `/api/evaluate` requests. Ask the company infrastructure team to route `https://qamaferai.dev.grid2.maf.ae/api/*` to API Gateway/Lambda (or an existing authorized backend) while retaining the same-origin frontend URL. The frontend hostname does not establish whether the application is currently on Lambda, ECS, EC2, CloudFront or any other AWS service; confirm actual hosting and route ownership before deployment.
+Supply `ENTERPRISE_AI_API_KEY` **only** via the approved runtime secret mechanism. The frontend must use relative `/api/health` and `/api/evaluate` requests. Keep `https://qamaferai.dev.grid2.maf.ae/api/*` on the existing company EKS ingress and route it to the app service; retain the same-origin frontend URL. DevOps confirmed Amazon EKS as the company hosting platform. Retain its existing Kubernetes ingress and service configuration.
 
 **Current verification status:** This company URL and its `/api/health` endpoint could not be reached through the assistant's external web access. Do not treat external reachability as a successful or failed internal environment health check.
