@@ -398,7 +398,7 @@ export function defaultRubric() {
   return {
     version: "2.2.0",
     revision: 1,
-    model: "gemini-3.5-flash-lite",
+    model: "gpt-4o",
 
     instructions:
       "Evaluate the configured checkpoint meaning, not literal keyword spelling. " +
@@ -484,8 +484,7 @@ export function loadRubric() {
         ? saved.revision : 1,
 
       model: [
-        "gemini-3.5-flash-lite",
-        "gemini-2.5-flash-lite"
+        "gpt-4o"
       ].includes(saved.model)
         ? saved.model : fresh.model,
 
