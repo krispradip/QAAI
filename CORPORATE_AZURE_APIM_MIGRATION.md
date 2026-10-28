@@ -39,3 +39,20 @@ The company backend can run as an AWS Lambda **Node.js 22.x ESM** function:
 - API Gateway HTTP API synchronous integration timeouts can be shorter than a full two-pass LLM evaluation. For large interactions/batches, use an approved asynchronous pattern (e.g. SQS + Lambda + DynamoDB/S3 job tracking) or an ALB-backed synchronous API after architecture review. The current adapter is **synchronous** and must be tested against timeout limits.
 - Keep existing rubric and scoring logic. The new adapter affects routing and AI transport, not scoring.
 - `npm test` includes AWS API Gateway v1/v2 event tests and corporate APIM mock tests.
+
+## Confirmed company development frontend origin (2026-10-28)
+
+The user-provided company development application URL is:
+
+`https://qamaferai.dev.grid2.maf.ae/`
+
+Configure AWS Lambda with:
+
+```text
+QA_ALLOWED_ORIGINS=https://qamaferai.dev.grid2.maf.ae
+ENTERPRISE_AI_ENDPOINT=https://apim-prod-ai-platform.azure-api.net/foundry-customer-care-prod/openai/v1/chat/completions
+```
+
+Supply `ENTERPRISE_AI_API_KEY` **only** via the approved runtime secret mechanism. The frontend must use relative `/api/health` and `/api/evaluate` requests. Ask the company infrastructure team to route `https://qamaferai.dev.grid2.maf.ae/api/*` to API Gateway/Lambda (or an existing authorized backend) while retaining the same-origin frontend URL. The frontend hostname does not establish whether the application is currently on Lambda, ECS, EC2, CloudFront or any other AWS service; confirm actual hosting and route ownership before deployment.
+
+**Current verification status:** This company URL and its `/api/health` endpoint could not be reached through the assistant's external web access. Do not treat external reachability as a successful or failed internal environment health check.
