@@ -8,11 +8,7 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test tests/*.test.mjs",
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
-  },
-  "devDependencies": {
-    "wrangler": "^4.0.0"
+    "check:eks": "node --input-type=module -e \"await import('./src/server.js')\"",
+    "test": "node --test tests/*.test.mjs"
   }
 }
