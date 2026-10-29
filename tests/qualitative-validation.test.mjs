@@ -22,7 +22,7 @@ const review=(decision,finalState,evidenceLines=[1],reason="Independent review o
 });
 const response=payload=>({
   ok:true,
-  json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})
+  json:async()=>({choices:[{finish_reason:"stop",message:{content:JSON.stringify(payload)}}]})
 });
 async function simulate(initial,revised,alternativeTurns=turns) {
   const previous=globalThis.fetch;
@@ -35,10 +35,10 @@ async function simulate(initial,revised,alternativeTurns=turns) {
     const req=new Request("https://qaai.example/api/evaluate",{
       method:"POST",
       headers:{"content-type":"application/json"},
-      body:JSON.stringify({model:"gemini-3.5-flash-lite",instructions:"SHARE configured assessment guidance",
+      body:JSON.stringify({model:"gpt-4o",instructions:"SHARE configured assessment guidance",
         criteria:[criterion],turns:alternativeTurns})
     });
-    const res=await worker.fetch(req,{GEMINI_API_KEY:"unit-test-only"});
+    const res=await worker.fetch(req,{ENTERPRISE_AI_API_KEY:"unit-test-only"});
     return {status:res.status,data:await res.json(),requests};
   } finally {globalThis.fetch=previous;}
 }
@@ -55,8 +55,8 @@ test("Hassan: missed invitation is corrected to MET with independent evidence",a
   assert.deepEqual(anchor.validation.evidenceLines,[1]);
   assert.equal(anchor.evidence[0].quote,turns[0].text);
   assert.equal(requests.length,2);
-  assert.equal(requests[1].contents[0].parts[0].text.includes("SHARE configured assessment guidance"),true);
-  const sent=JSON.parse(requests[1].contents[0].parts[0].text);
+  assert.equal(JSON.stringify(JSON.parse(requests[1].messages[1].content)).includes("SHARE configured assessment guidance"),true);
+  const sent=JSON.parse(JSON.stringify(JSON.parse(requests[1].messages[1].content)));
   assert.deepEqual(sent.turns.map(t=>t.line),[1,2,3,20]);
   assert.equal(sent.checks[0].criterionInstructions,criterion.instructions);
   const scored=calculateCriterion({...criterion,checkpoints:[{...checkpoint,enabled:true,points:1}]},
@@ -111,9 +111,9 @@ test("Reviewer outage fails closed and preserves original evaluation metadata",a
   globalThis.fetch=async()=>{count++;if(count===1)return response(primary());throw Error("network");};
   try{
     const req=new Request("https://qaai.example/api/evaluate",{method:"POST",body:JSON.stringify({
-      model:"gemini-3.5-flash-lite",instructions:"Test",criteria:[criterion],turns
+      model:"gpt-4o",instructions:"Test",criteria:[criterion],turns
     })});
-    const res=await worker.fetch(req,{GEMINI_API_KEY:"unit-test-only"});
+    const res=await worker.fetch(req,{ENTERPRISE_AI_API_KEY:"unit-test-only"});
     const data=await res.json();
     assert.equal(res.status,200);
     assert.equal(data.findings[0].anchors[0].state,"UNKNOWN");

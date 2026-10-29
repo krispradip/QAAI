@@ -426,7 +426,7 @@ function redact(text) {
  * QA-ENGINE-ASSESS
  *
  * Evaluate one call.
- * Local rules -> Gemini evidence -> Qualis score.
+ * Local rules -> GPT-4o evidence -> Qualis score.
  */
 export async function assess(
   call,

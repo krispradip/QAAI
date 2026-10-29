@@ -109,22 +109,22 @@ test("Selected reference hints reach Gemini evaluator AND validator",async()=>{
     const payload=reqs.length===1
       ? {findings:[{id:"opening",reason:"test",anchors:[{id:"opening-1",state:"MET",evidenceLines:[1]}]}]}
       : {reviews:[{id:"opening-1",decision:"CONFIRMED",finalState:"MET",evidenceLines:[1],reason:"Brand established"}]};
-    return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})};
+    return {ok:true,json:async()=>({choices:[{finish_reason:"stop",message:{content:JSON.stringify(payload)}}]})};
   };
   try{
     const reference={type:"phonetic",source:"approved.csv",version:1,canonical:"SHARE",variant:"Shair"};
     const response=await worker.fetch(new Request("https://qaai.example/api/evaluate",{
       method:"POST",body:JSON.stringify({
-        model:"gemini-3.5-flash-lite",instructions:"Test",references:[reference],
+        model:"gpt-4o",instructions:"Test",references:[reference],
         criteria:[{id:"opening",name:"Opening",definition:"",instructions:"",checkpoints:[{id:"opening-1",text:"Brand"}]}],
         turns:[{line:1,speaker:"agent",text:"Welcome to Shair",timestamp:"00:04"}]
       })
-    }),{GEMINI_API_KEY:"test"});
+    }),{ENTERPRISE_AI_API_KEY:"test"});
     const data=await response.json();
     assert.equal(response.status,200);
     assert.equal(data.findings[0].anchors[0].state,"MET");
     for(const body of reqs){
-      const part=JSON.parse(body.contents[0].parts[0].text);
+      const part=JSON.parse(body.messages[1].content);
       assert.deepEqual(part.referenceHints,[reference]);
     }
   }finally{globalThis.fetch=old;}

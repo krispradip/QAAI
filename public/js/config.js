@@ -273,7 +273,7 @@ const specs = [
  * Scoring checkpoints are objective behaviour statements.
  * Each can be edited in QA Configuration.
  *
- * Gemini identifies MET, MISSED, UNKNOWN or NA.
+ * The AI evaluator identifies MET, MISSED, UNKNOWN or NA.
  * Qualis performs the percentage calculation.
  */
 
@@ -367,8 +367,8 @@ const checkpoints = {
 // QA-CHECK-COVERAGE | Explicit evidence checks for previously unconfigured parameters.
 // These do not imply transcript-only proof; evidence-dependent checks remain unverifiable.
 const additionalChecks = {
-  greet7:[], // Timing is deterministic; no Gemini duplicate.
-  greet10:[], // Timing is deterministic; no Gemini duplicate.
+  greet7:[], // Timing is deterministic; no duplicate AI check.
+  greet10:[], // Timing is deterministic; no duplicate AI check.
   verification:["Follows approved customer verification procedure","Does not disclose account information before verification"],
   interruption:["Allows the customer to finish speaking","Avoids interrupting key customer explanations"],
   pace:["Maintains an understandable conversational pace","Adapts pace when the customer needs clarification"],
@@ -398,7 +398,7 @@ export function defaultRubric() {
   return {
     version: "2.2.0",
     revision: 1,
-    model: "gemini-3.5-flash-lite",
+    model: "gpt-4o",
 
     instructions:
       "Evaluate the configured checkpoint meaning, not literal keyword spelling. " +
@@ -484,8 +484,7 @@ export function loadRubric() {
         ? saved.revision : 1,
 
       model: [
-        "gemini-3.5-flash-lite",
-        "gemini-2.5-flash-lite"
+        "gpt-4o"
       ].includes(saved.model)
         ? saved.model : fresh.model,
 

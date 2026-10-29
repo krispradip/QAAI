@@ -913,7 +913,7 @@ function renderCriterionEditor(c, rubric) {
   const qualitative=c.checkpoints.map((a,i)=>`
     <div class="qa-check-row">
       <label class="qa-check-name"><input type="checkbox" data-anchor-enabled="${i}" ${c.enabled && a.enabled!==false?"checked":""}><span>Qualitative check ${i+1}</span></label>
-      <label class="qa-check-text"><small>Gemini evaluation instruction</small><textarea rows="2" data-anchor-text="${i}">${esc(a.text)}</textarea></label>
+      <label class="qa-check-text"><small>AI evaluation instruction</small><textarea rows="2" data-anchor-text="${i}">${esc(a.text)}</textarea></label>
       <label class="qa-check-points"><small>Points</small><input type="number" min="0" max="100" step="0.5" data-anchor-points="${i}" value="${esc(a.points??1)}"></label>
     </div>`).join("");
   const noChecks=!ids.length&&!c.checkpoints.length;
@@ -1020,30 +1020,12 @@ export function configuration(rubric, selected) {
             </div>
 
             <span class="tag">
-              CLOUDFLARE SECRET
+              ENTERPRISE SECRET
             </span>
           </div>
 
-          <label>Active Gemini model</label>
-
-          <select id="model">
-            <option
-              value="gemini-3.5-flash-lite"
-              ${rubric.model ===
-                "gemini-3.5-flash-lite"
-                  ? "selected" : ""}>
-              Gemini 3.5 Flash-Lite (default)
-            </option>
-
-            <option
-              value="gemini-2.5-flash-lite"
-              ${rubric.model ===
-                "gemini-2.5-flash-lite"
-                  ? "selected" : ""}>
-              Gemini 2.5 Flash-Lite
-              (legacy access)
-            </option>
-          </select>
+          <label>Corporate AI deployment</label>
+          <select id="model"><option value="gpt-4o" selected>GPT-4o (Corporate Azure AI Foundry / APIM)</option></select>
 
           <label>
             Global evaluator instructions
