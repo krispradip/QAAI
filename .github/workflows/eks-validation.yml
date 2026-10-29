@@ -1,0 +1,28 @@
+name: EKS Node integration validation
+on:
+  push:
+    branches: [feature/corporate-azure-apim]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check required EKS and GPT files
+        run: |
+          test -f src/server.js
+          test -f src/worker.js
+          test -f src/enterprise-ai.js
+          test -f src/evidence-policy.js
+          test -f public/index.html
+      - name: Check module imports
+        run: npm run check:eks
+      - name: Run regressions
+        run: npm test
