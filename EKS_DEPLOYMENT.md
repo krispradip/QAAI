@@ -31,3 +31,13 @@ That exact error is produced by the **old** `worker.js`; it is not emitted by th
 DevOps should verify the running image digest/commit and pod rollout, then test `/readyz`, `/api/health`, and a synthetic evaluation in Chrome Network > Response. Do not send real transcripts until security approval.
 
 Testing here uses mocked APIM calls; live company APIM connectivity has not been verified.
+
+## Missing adapter / non-Pages deployment correction (2026-10-29)
+
+EKS pod startup failed with `ERR_MODULE_NOT_FOUND: /app/src/enterprise-ai.js`. This means the **company-built image** does not contain the adapter, even though the personal enterprise branch has it. Confirm `src/enterprise-ai.js` is committed to the company application repository and is included in the exact Docker build context, commit and image digest used by the EKS deployment.
+
+Do **not** use GitHub Pages for the company deployment. Transfer application files to the one company repository and deploy through its existing AWS EKS CI/CD process. Retain its chart, Vault and image-publish workflow.
+
+This branch now includes a Node 24 Docker build stage that imports `src/server.js` during the image build. That import requires `src/worker.js`, `src/enterprise-ai.js`, and `src/evidence-policy.js`; a missing file fails the build rather than failing in the EKS pod. The added `npm run check:eks` and `.github/workflows/eks-validation.yml` provide similar checks for CI. They do not deploy to AWS.
+
+Do not copy personal GitHub workflow files into company GitHub unless explicitly adopted by DevOps; the company's existing AWS pipeline remains authoritative.
