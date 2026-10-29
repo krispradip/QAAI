@@ -1,20 +1,33 @@
-# QA.MAFer.AI — company EKS deployment
+# QA.MAFer.AI — GPT-4o integration on existing company EKS
 
-Confirmed company frontend: https://qamaferai.dev.grid2.maf.ae/
-Confirmed infrastructure: **Amazon EKS**, not AWS Lambda.
+Company application URL: https://qamaferai.dev.grid2.maf.ae/
+Company GitHub repository: majidalfuttaim/customer-care (not accessible via the connected personal GitHub account).
 
-Use the repository Dockerfile to build a Node.js 22 container. The app serves `public/` and implements `GET /api/health` and `POST /api/evaluate` using the existing QA engine and corporate GPT-4o Azure APIM adapter.
+## Application files to transfer
 
-## Platform team actions
-1. Build and scan the image through the approved company CI/CD pipeline; push to the approved ECR registry.
-2. Deploy via the existing EKS namespace, Helm chart or Kubernetes manifests. Container port: **8080**. Keep the existing company Ingress, DNS, TLS, WAF and SSO controls.
-3. Inject `ENTERPRISE_AI_API_KEY` from the company-approved secret store at **runtime** (e.g. External Secrets + Secrets Manager); never commit it. Rotate the previously shared key.
-4. Set `ENTERPRISE_AI_ENDPOINT` to the approved Azure APIM Chat Completions URL and `QA_ALLOWED_ORIGINS=https://qamaferai.dev.grid2.maf.ae`.
-5. Ensure EKS pod egress, DNS, firewall rules and TLS trust permit calls to the APIM endpoint.
-6. Set readiness/liveness probes to `GET /api/health`; use appropriate resource requests/limits, non-root container securityContext, replicas and HPA under existing platform standards.
-7. Confirm that the corporate ingress timeout accommodates two sequential AI calls; larger transcript batches need a separate asynchronous job architecture. Current API is synchronous.
-8. Require company authentication and authorization at ingress or application layer. CORS/origin checking is **not** authentication. Avoid logging transcript bodies, prompts or secrets.
-9. Smoke test with synthetic data and verify GPT-4o JSON mode support. No live corporate APIM call was performed by the assistant.
+- Replace `src/worker.js`, `public/js/config.js`, `public/js/ui.js`.
+- Add `src/enterprise-ai.js`.
+- Adapt `src/server.js` (existing DevOps Node.js server) to pass `ENTERPRISE_AI_API_KEY` and `ENTERPRISE_AI_ENDPOINT` to the worker, and update `/readyz` for the enterprise key.
+- `public/js/app.js` and `public/js/engine.js` contain copy-only updates removing obsolete Gemini wording (no behavior change).
+- Existing company `package.json`: `"type":"module"`, Node >=24, `"start":"node src/server.js"`.
+- Existing company `Dockerfile`: Node.js 24 distroless, `CMD ["src/server.js"]`, port 8080.
+- Existing company `.dockerignore`: allowlist `src/`, `public/`, `package.json` and Dockerfile.
+- Keep existing Kubernetes Helm, ingress, image registry, Vault and authentication controls. No Lambda and no alternate EKS server.
 
-## Deployment compatibility
-This is a standalone container adaptation, not a claim about the existing company's Dockerfile or Helm chart. Compare the current company repository and retain its approved Kubernetes configuration, auth middleware and security controls. Do **not** deploy the Lambda adapter on EKS.
+## Environment (DevOps)
+
+- `PUBLIC_ORIGIN=https://qamaferai.dev.grid2.maf.ae`
+- `ENTERPRISE_AI_ENDPOINT` = approved Azure APIM OpenAI-compatible chat-completions URL
+- `ENTERPRISE_AI_API_KEY` = rotated corporate credential injected from an approved runtime secret store
+- `PORT=8080`
+- Ensure pods can reach APIM over HTTPS and verify ingress timeout for the two-pass evaluation.
+- Do not commit the API key or customer transcripts. PostgreSQL integration is separate.
+
+## Verify deployment
+
+The old live API previously returned `Gemini rejected the request (400, INVALID_ARGUMENT, API_CREDENTIALS).`
+That exact error is produced by the **old** `worker.js`; it is not emitted by the enterprise GPT-4o backend. A working `/api/health` response with `apiReady:true` is not enough to prove a new image has been deployed.
+
+DevOps should verify the running image digest/commit and pod rollout, then test `/readyz`, `/api/health`, and a synthetic evaluation in Chrome Network > Response. Do not send real transcripts until security approval.
+
+Testing here uses mocked APIM calls; live company APIM connectivity has not been verified.
