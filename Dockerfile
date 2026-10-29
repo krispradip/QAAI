@@ -1,9 +1,11 @@
-FROM node:22-alpine
-ENV NODE_ENV=production PORT=8080
+FROM gcr.io/distroless/nodejs24-debian13:nonroot
+LABEL com.azure.containerizationassist.createdby="containerization-assist"
 WORKDIR /app
-COPY --chown=node:node package.json ./
-COPY --chown=node:node public/ ./public/
-COPY --chown=node:node src/ ./src/
-USER node
+ENV NODE_ENV=production PORT=8080
+COPY package.json ./
+COPY src/ ./src/
+COPY public/ ./public/
+USER 65532
 EXPOSE 8080
-CMD ["node","src/eks-server.mjs"]
+# Distroless has no shell; configure health probes in the orchestrator.
+CMD ["src/server.js"]
