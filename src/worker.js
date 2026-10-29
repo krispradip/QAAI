@@ -222,7 +222,7 @@ async function validateEvidence(findings, criteria, turns, model, env, instructi
 /**
  * QA-API-EVALUATE
  *
- * Calls the official Gemini generateContent API.
+ * Calls corporate Azure APIM via the enterprise AI adapter.
  * The model identifies evidence, not percentages.
  */
 async function evaluate(request, env) {
@@ -371,7 +371,7 @@ async function evaluate(request, env) {
   }));
 
   /**
-   * Gemini structured JSON response schema.
+   * Expected evaluation JSON response schema.
    */
   const schema = {
     type: "OBJECT",
