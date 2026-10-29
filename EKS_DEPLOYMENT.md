@@ -5,8 +5,8 @@ Company GitHub repository: majidalfuttaim/customer-care (not accessible via the 
 
 ## Application files to transfer
 
-- Replace `src/worker.js`, `public/js/config.js`, `public/js/ui.js`.
-- Add `src/enterprise-ai.js`.
+- Replace `src/worker.js`, `public/js/config.js`, `public/js/ui.js` (compare before overwriting company-specific edits).
+- Add **both** `src/enterprise-ai.js` and `src/evidence-policy.js` into the deployed application `src/` directory. Both are imports from `worker.js`; omitting either crashes Node at startup.
 - Adapt `src/server.js` (existing DevOps Node.js server) to pass `ENTERPRISE_AI_API_KEY` and `ENTERPRISE_AI_ENDPOINT` to the worker, and update `/readyz` for the enterprise key.
 - `public/js/app.js` and `public/js/engine.js` contain copy-only updates removing obsolete Gemini wording (no behavior change).
 - Existing company `package.json`: `"type":"module"`, Node >=24, `"start":"node src/server.js"`.
@@ -41,3 +41,27 @@ Do **not** use GitHub Pages for the company deployment. Transfer application fil
 This branch now includes a Node 24 Docker build stage that imports `src/server.js` during the image build. That import requires `src/worker.js`, `src/enterprise-ai.js`, and `src/evidence-policy.js`; a missing file fails the build rather than failing in the EKS pod. The added `npm run check:eks` and `.github/workflows/eks-validation.yml` provide similar checks for CI. They do not deploy to AWS.
 
 Do not copy personal GitHub workflow files into company GitHub unless explicitly adopted by DevOps; the company's existing AWS pipeline remains authoritative.
+
+## Verified company repository layout (2026-10-29)
+
+The company application is a **nested directory** in the single company repository:
+
+```text
+majidalfuttaim/customer-care/
+  QAMAFerAI/
+    src/
+      server.js
+      worker.js
+      enterprise-ai.js    # ADD - absent in company screenshot
+      evidence-policy.js # ADD - absent in company screenshot
+    public/js/
+    package.json
+    Dockerfile
+    .dockerignore
+```
+
+The personal repo puts `src/`, `public/`, `Dockerfile` etc. at the **repo root**. When transferring into company GitHub, map `src/enterprise-ai.js` to **`QAMAFerAI/src/enterprise-ai.js`**, and likewise for `evidence-policy.js`. Do not put the files at `customer-care/src/` or inside another nested `QAMAFerAI/QAMAFerAI/`.
+
+The EKS image build context must be `QAMAFerAI/` or an equivalent Docker build using `QAMAFerAI/Dockerfile` and appropriately adjusted `COPY` paths. The exact DevOps workflow must be checked, not guessed. `wrangler.jsonc` in the company app is not an AWS deployment mechanism; GitHub Pages is not the runtime for the company app.
+
+The observed pod error `ERR_MODULE_NOT_FOUND: /app/src/enterprise-ai.js` means this is a missing **image file** issue; it does not establish any error in Azure APIM connectivity. Commit both imports to the application directory, rebuild the actual EKS image and verify the new image digest before running the GPT assessment again.
