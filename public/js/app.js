@@ -320,7 +320,7 @@ function stage(phase, call) {
       "Applying deterministic rules",
 
     ai:
-      "Gemini identifying evidence checkpoints",
+      "GPT-4o identifying evidence checkpoints",
 
     validating:
       "Verifying evidence and calculating scores",
@@ -345,12 +345,12 @@ function stage(phase, call) {
  * Run selected call or all pending calls.
  *
  * Sequential execution prevents uncontrolled
- * parallel Gemini requests.
+ * parallel AI requests.
  *
  * Quota errors stop subsequent requests.
  */
 // QA-PROGRESS-ETA | Real elapsed wall time and completed-call average.
-// Do not fabricate percentage completion for an in-flight Gemini request.
+// Do not fabricate percentage completion for an in-flight AI request.
 let progressClock = null;
 function paintProgress() {
   const elapsed=root.querySelector("#qa-elapsed");
@@ -497,7 +497,7 @@ async function run(scope = "ready") {
       : "idle";
 
     state.message = quota
-      ? "Gemini quota reached; pending calls remain ready"
+      ? "AI service quota reached; pending calls remain ready"
       : stopped
         ? "Stopped — completed results retained; pending interactions can be resumed with Evaluate all"
         : "Evaluation cycle finished — inspect results";
@@ -889,7 +889,7 @@ root.addEventListener("click", event => {
     state.stopAfterCurrent = true;
     state.message = "Stop requested — finishing the current interaction; pending calls will not start";
     // Update the button and progress area immediately so the request is visible
-    // while the in-flight Gemini request is still processing.
+    // while the in-flight AI request is still processing.
     render();
     paintProgress();
     notify("Stop requested. The current assessment will finish; pending calls stay ready.");
