@@ -913,7 +913,7 @@ function renderCriterionEditor(c, rubric) {
   const qualitative=c.checkpoints.map((a,i)=>`
     <div class="qa-check-row">
       <label class="qa-check-name"><input type="checkbox" data-anchor-enabled="${i}" ${c.enabled && a.enabled!==false?"checked":""}><span>Qualitative check ${i+1}</span></label>
-      <label class="qa-check-text"><small>Gemini evaluation instruction</small><textarea rows="2" data-anchor-text="${i}">${esc(a.text)}</textarea></label>
+      <label class="qa-check-text"><small>AI evaluation instruction</small><textarea rows="2" data-anchor-text="${i}">${esc(a.text)}</textarea></label>
       <label class="qa-check-points"><small>Points</small><input type="number" min="0" max="100" step="0.5" data-anchor-points="${i}" value="${esc(a.points??1)}"></label>
     </div>`).join("");
   const noChecks=!ids.length&&!c.checkpoints.length;
