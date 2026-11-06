@@ -1,3 +1,0 @@
-criterionId,exampleType,example,evaluationRule,scope,language,businessUnit,market,channel,notes
-opening-2,positive,My name is Layla,Identity introduction may occur at any point in dialogue,entire,en,SHARE,UAE,Call,Synthetic demo example
-closing-1,positive,Thank you for contacting SHARE,Look for an appropriate closing statement in the relevant final turn,closing,en,SHARE,UAE,Call,Synthetic demo example
