@@ -15,8 +15,8 @@ globalThis.sessionStorage={
 };
 test("persona login uses email alone, persists only in the browser tab, and logs out",()=>{
  assert.equal(activeDemoUser(),null);
- assert.equal(loginDemoEmail("  NADIA.DIEHL@maf.ae  ").role,"cc_lead");
- assert.equal(activeDemoUser().email,"Nadia.Diehl@maf.ae");
+ assert.equal(loginDemoEmail("  PRADIP.KRISHNAMOORTHY@maf.ae  ").role,"admin");
+ assert.equal(activeDemoUser().email,"Pradip.krishnamoorthy@maf.ae");
  logoutDemoUser();
  assert.equal(activeDemoUser(),null);
  assert.throws(()=>loginDemoEmail("no-user@example.com"),/not registered/);
@@ -37,7 +37,7 @@ test("correct BU to brand hierarchy with MGC Classic",()=>{
  assert.deepEqual(BU_BRANDS.map(x=>[x.bu,x.brand]),expected);
  const html=renderDirectorPortfolio([]);
  for(const [bu,brand] of expected){assert.ok(html.includes(bu),bu);assert.ok(html.includes(brand.replace(/&/g,"&amp;")),brand);}
- assert.match(html,/Synthetic demo/);
+ assert.match(html,/No records/);
  assert.match(html,/SHARE agent performance/);
 });
 test("SHARE rolls up the same agent assessment rows and does not invent scores for pending calls",()=>{
