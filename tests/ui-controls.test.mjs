@@ -109,7 +109,7 @@ test("Approved Studio places two evaluation cards left, circular evaluator cente
   assert.match(intake,/id="paste"[^>]*maxlength="50000"/);
   assert.match(intake,/id="paste-count"/);
   assert.match(intake,/id="file"[^>]*accept="\.txt,\.tsv,\.csv,\.json,\.srt,\.vtt,\.md,\.log"/);
-  assert.match(intake,/Not yet enabled in this prototype/);
+  assert.match(intake,/Audio evaluation is not enabled/);
 });
 
 test("Approved Studio keeps all eight action controls in the requested single-line group order", () => {
@@ -122,7 +122,7 @@ test("Approved Studio keeps all eight action controls in the requested single-li
   });
   const toolbar=html.slice(html.indexOf('class="studio-v5-toolbar"'),html.indexOf('class="studio-queue-row"'));
   const ids=[...toolbar.matchAll(/<button[^>]*id="([^"]+)"/g)].map(m=>m[1]);
-  assert.deepEqual(ids,["all","stop","stopAfter","one","clearBatch","demo","json","csv"]);
+  assert.deepEqual(ids,["all","stop","stopAfter","one","clearBatch","json","csv"]);
   assert.match(toolbar,/EVALUATION[\s\S]*BATCH ACTIONS[\s\S]*EXPORT/);
   assert.match(toolbar,/Remove all batch/);
   assert.match(toolbar,/Export JSON/);
