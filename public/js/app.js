@@ -126,7 +126,7 @@ function render() {
   if(nav.dataset.persona!==user.id){nav.innerHTML=navHTML;nav.dataset.persona=user.id;}
   const holder=document.querySelector("#qa-demo-persona");
   if(holder)holder.innerHTML=demoSelectorHTML(user);
-  document.querySelector(".sidebar-bottom")?.setAttribute("data-demo-role",user.role);
+  document.querySelector(".sidebar-bottom")?.setAttribute?.("data-demo-role",user.role);
   const [title, sub] = titles[state.page];
 
   $("#page-title").textContent = title;
