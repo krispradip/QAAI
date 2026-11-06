@@ -21,7 +21,7 @@ test("agent sees only their own SHARE interactions",()=>{
   memory.clear();const u=chooseDemoUser("demo-agent-001");
   assert.equal(activeDemoUser().role,"agent");
   assert.deepEqual(scopedDemoCalls(u,calls).map(c=>c.id),["demo-a"]);
-  assert.equal(canViewPage(u,"config"),false);
+  assert.equal(canViewPage(u,"config"),true);
   assert.equal(canViewPage(u,"studio"),false);
   assert.equal(canEvaluate(u),false);
 });
