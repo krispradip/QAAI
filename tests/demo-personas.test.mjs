@@ -42,7 +42,7 @@ test("customer care lead accesses cross-BU demo but not admin and config",()=>{
   assert.equal(scopedDemoCalls(u,calls).length,3);
   const html=renderDirectorPortfolio(calls);
   assert.match(html,/Carrefour/);
-  assert.match(html,/VOX Cinemas/);
+  assert.match(html,/Entertainment · VOX/);
   assert.match(html,/SHARE/);
   assert.match(html,/Synthetic demo/);
   assert.equal(shareSummary(calls.slice(0,2)).quality,95);
