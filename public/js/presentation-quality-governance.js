@@ -1,6 +1,6 @@
 /**
- * Read-only QA rubric and Reference Library access for QA and CC leads.
- * Configuration editing remains restricted to Platform Admin.
+ * Rubric and Reference Library visibility with leadership access to the existing editor.
+ * BU Lead edits are scoped to the assigned BU; CC Director can select any BU.
  * The current personal Gemini prototype has only an actual SHARE baseline
  * rubric. Other business-unit rubrics are not falsely presented as ready.
  */
@@ -61,19 +61,19 @@ export function renderQualityGovernance(rubric,library,role,bu="SHARE"){
  return '<div class="qa-persona-page qa-governance-view">'+
   '<div class="qa-demo-heading"><div><span class="kicker">QUALITY ASSURANCE GOVERNANCE</span><h2>QA Rubric & Reference Library</h2>'+
   '<p>Current configurations and the source material used for new AI assessments.</p></div>'+
-  '<span class="qa-demo-pill">READ-ONLY REVIEW</span></div>'+
+  '<span class="qa-demo-pill">BASELINE / WORKING RUBRIC</span></div>'+
   (other?'<p class="qa-governance-warning">A dedicated rubric has not been configured for '+esc(bu)+'. The SHARE baseline below is for structural reference only and must not be treated as an approved '+esc(bu)+' scorecard.</p>':"")+
   '<div class="qa-governance-metrics">'+[
    ["QA criteria",stats.criteria],["Scoring themes",stats.themes],["AI checkpoints",stats.checkpoints],
    ["Active reference files",stats.activeFiles],["Reference entries",stats.activeEntries]
   ].map(([label,value])=>'<article><small>'+esc(label)+'</small><strong>'+esc(value)+'</strong></article>').join("")+'</div>'+
   '<section class="panel qa-governance-top"><div><span class="kicker">CURRENT SHARE RUBRIC</span><h3>Revision '+esc(stats.rubricRevision)+'</h3>'+
-  '<p>Business-unit applicability: SHARE / SHARERewards. Theme and checkpoint definitions are view-only here.</p></div>'+
-  (role==="admin"?'<button class="primary" type="button" data-page-go="config">Manage rubric & libraries</button>':'<span class="qa-governance-owner">Maintained by Platform Admin</span>')+'</section>'+
+  '<p>Business-unit applicability: SHARE / SHARERewards. Published baseline remains authoritative until a proposed revision is explicitly published.</p></div>'+
+  '<button class="primary" type="button" data-page-go="config">Edit / Test Rubric</button>'+'</section>'+
   '<div class="qa-governance-groups">'+[...byGroup.entries()].map(([name,list])=>rubricGroup(name,list)).join("")+'</div>'+
   '<section class="panel qa-governance-reference"><div class="pb-summary-head"><div><span class="kicker">REFERENCE LIBRARY</span><h3>Active files · Revision '+esc(stats.libraryRevision)+'</h3>'+
-  '<p>Context used in new assessments, not proof of an agent action. Admin updates are visible in this browser.</p></div>'+
-  (role==="admin"?'<button class="secondary" type="button" data-page-go="config">Manage reference files</button>':'')+'</div>'+
+  '<p>Context used in new assessments, not proof of an agent action. Published references are visible in this browser.</p></div>'+
+  '<button class="secondary" type="button" data-page-go="config" data-open-config-tab="references">Upload / Manage Reference Files</button>'+'</div>'+
   (active.length?'<div class="qa-governance-files">'+active.map(refFile).join("")+'</div>':
     '<p class="qa-governance-warning">No active reference files are available in this browser. Ask the Platform Admin to configure the library.</p>')+
   '<p class="pb-note">Personal presentation limitation: browser-local rubric and reference data do not synchronize across users, browsers or devices. Enterprise deployment needs centrally managed storage and authenticated role permissions.</p></section></div>';
