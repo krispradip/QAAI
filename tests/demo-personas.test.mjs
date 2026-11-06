@@ -33,11 +33,11 @@ test("BU lead sees all SHARE agents, no other BUs",()=>{
   assert.equal(canViewPage(u,"portfolio"),false);
   assert.equal(canEvaluate(u),true);
 });
-test("customer care lead accesses cross-BU demo but not admin and config",()=>{
+test("customer care lead accesses cross-BU demo and rubric configuration but not admin",()=>{
   const u=chooseDemoUser("demo-cclead-001");
   assert.equal(canViewPage(u,"portfolio"),true);
   assert.equal(canViewPage(u,"admin"),false);
-  assert.equal(canViewPage(u,"config"),false);
+  assert.equal(canViewPage(u,"config"),true);
   assert.equal(canEvaluate(u),true);
   assert.equal(canViewPage(u,"studio"),true);
   assert.equal(scopedDemoCalls(u,calls).length,3);

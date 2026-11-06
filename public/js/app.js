@@ -1,4 +1,7 @@
 import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
+import {canConfigureBU,normalizeBU,isShareBU,publishedBUrubric,savePublishedBUrubric,loadWorkingConfig,saveWorkingConfig,publishBaselineEvent,agentBaselineNotifications,validateScopedDataset} from "./presentation-baseline.js";
+import {demoBusinessUnits} from "./presentation-portfolio.js";
+import {renderPresentationInspection} from "./presentation-inspection.js";
 import {renderPreviewLogin} from "./presentation-login.js";
 import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
@@ -71,6 +74,9 @@ const state = {
   rubric: loadRubric(),
   references: loadReferenceLibrary(),
   configTab: "rubric",
+  working: null,
+  governanceBU: "SHARERewards",
+  previewCall: null,
 
   criterion: "greet7",
   stopAfterCurrent: false,
@@ -115,6 +121,27 @@ const titles = {
  * QA-APP-RENDER
  * Render the selected application page.
  */
+function editingRubric(){return state.working?.rubric||state.rubric;}
+function editingReferences(){return state.working?.references||state.references;}
+function openWorkingConfig(user,bu){
+  const target=normalizeBU(bu);
+  if(!canConfigureBU(user,target))throw Error("This business unit is outside your configuration scope.");
+  state.governanceBU=target;
+  state.working=loadWorkingConfig(user,target,publishedBUrubric(target,state.rubric)||state.rubric,state.references);
+  state.criterion=state.working.rubric.criteria[0]?.id||"greet7";
+  state.previewCall=null;
+}
+function saveWorking(message){
+  const user=activeDemoUser();if(!canConfigureBU(user,state.governanceBU))throw Error("Editing not allowed for this BU.");
+  state.working.rubric.revision=(Number(state.working.rubric.revision)||1)+1;
+  saveWorkingConfig(user,state.governanceBU,state.working);
+  render();notify(message);
+}
+function renderAgentNotifications(user){
+ const events=agentBaselineNotifications(user);if(!events.length)return "";
+ const esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ const latest=events[0];return '<section class="panel qa-baseline-alert"><b>Evaluation criteria updated by '+esc(latest.name)+'</b><p>Effective '+esc(latest.effectiveAt)+' · Baseline version '+esc(latest.toRevision)+'</p><details><summary>See changes ('+latest.changes.length+')</summary><ul>'+latest.changes.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></details></section>';
+}
 function render() {
   const preserveScroll = state.page === "config";
   const previousY = preserveScroll ? window.scrollY : 0;
@@ -134,6 +161,7 @@ function render() {
   }
   document.body?.classList?.remove?.("qa-demo-login-open");
   if(!canViewPage(user,state.page))state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+  if(state.page==="config"&&(!state.working||state.working.userId!==user.id))openWorkingConfig(user,user.role==="bu_lead"?user.businessUnit:state.governanceBU);
   const scopedCalls=scopedDemoCalls(user,state.calls);
   if(state.selected&&!scopedCalls.some(c=>c.key===state.selected))state.selected=null;
   if(state.agentFilter&&!scopedCalls.some(c=>c.agent===state.agentFilter))state.agentFilter="";
@@ -168,14 +196,26 @@ function render() {
       : state.page === "agents" ? agentsView({...state,calls:scopedCalls,personaRole:user.role})
       : configShell(state.configTab,
               state.configTab === "rubric"
-                ? configuration(state.rubric,state.criterion)
-                : referenceLibraryView(state.references)
+                ? configuration(editingRubric(),state.criterion)
+                : referenceLibraryView(editingReferences())
             );
 
   if((state.page==="overview"&&user.role==="bu_lead") || (state.page==="portfolio"&&user.role==="cc_lead") || (state.page==="admin"&&user.role==="admin")) {
     root.innerHTML=renderQualityContextStrip(state.rubric,state.references,user.role)+root.innerHTML;
   }
 
+  if(state.page==="config"){
+    const choices=user.role==="bu_lead"?[normalizeBU(user.businessUnit)]:demoBusinessUnits().map(x=>x.bu);
+    if(!choices.includes(state.governanceBU))choices.unshift(state.governanceBU);
+    const bar=document.createElement("section");bar.className="panel qa-working-header";
+    bar.innerHTML='<div><span class="kicker">WORKING CONFIGURATION · '+state.governanceBU+'</span><h3>Rubric & Reference Library</h3><p>Edits are test drafts. Official agent scores remain on the published baseline.</p></div>'+
+    '<label>Business unit <select id="qa-governance-bu">'+choices.map(b=>'<option value="'+b+'" '+(state.governanceBU===b?"selected":"")+'>'+b+'</option>').join("")+'</select></label>'+
+    '<div class="qa-working-actions"><button type="button" class="secondary" id="qa-save-working">Save Working Draft</button><button type="button" class="primary" id="qa-publish-baseline">Publish Baseline</button></div>'+
+    '<div class="qa-working-preview"><label>Test draft on interaction <select id="qa-preview-interaction"><option value="">Select interaction</option>'+scopedCalls.filter(c=>normalizeBU(c.businessUnit||"SHARE")===state.governanceBU).map(c=>'<option value="'+c.key+'">'+String(c.id||c.key).replace(/[&<>"]/g,"") +' · '+String(c.agent||"").replace(/[&<>"]/g,"")+'</option>').join("")+'</select></label><button type="button" class="secondary" id="qa-test-working">Run test (not official)</button></div>';
+    root.prepend(bar);
+    if(state.previewCall){const preview=document.createElement("section");preview.className="qa-draft-preview";preview.innerHTML='<div class="qa-draft-notice"><b>WORKING-DRAFT PREVIEW — NOT AN OFFICIAL AGENT ASSESSMENT</b><p>Nothing from this test is added to official interaction history or agent scorecards.</p></div>'+renderPresentationInspection(state.previewCall,editingRubric());root.append(preview);}
+  }
+  if(state.page==="overview"&&user.role==="agent")root.innerHTML=renderAgentNotifications(user)+root.innerHTML;
   // Import corporate-format configuration backups locally without publishing
   // reference-library datasets or rubric data to public GitHub.
   if (state.page==="config") {
@@ -189,7 +229,7 @@ function render() {
 
   filterRows();
   if (state.page === "config" && state.configTab === "rubric") {
-    for (const criterion of state.rubric.criteria) updateParentSelectionIndicator(criterion.id);
+    for (const criterion of editingRubric().criteria) updateParentSelectionIndicator(criterion.id);
   }
   if (state.page === "studio") paintProgress();
   if (preserveScroll) {
@@ -202,11 +242,11 @@ function render() {
 /** Sync the visible master checkbox with enabled child checks, including a
  * mixed state when a business user deliberately selects only some checks. */
 function updateParentSelectionIndicator(id) {
-  const criterion = state.rubric.criteria.find(c => c.id === id);
+  const criterion = editingRubric().criteria.find(c => c.id === id);
   const input = [...root.querySelectorAll("[data-enabled]")].find(x => x.dataset.enabled === id);
   if (!criterion || !input) return;
   const owned = linkedRules(id);
-  const rules = (state.rubric.rules?.deterministic || []).filter(r => owned.includes(r.id));
+  const rules = (editingRubric().rules?.deterministic || []).filter(r => owned.includes(r.id));
   const checks = [...(criterion.checkpoints || []), ...rules];
   const selected = checks.filter(a => a.enabled === true).length;
   input.checked = criterion.enabled === true;
@@ -259,6 +299,7 @@ function navigate(page) {
     state.agentFilter=current.agent;
   }
   if (state.page === "config" && page !== "config" && !captureCriterionDraft()) return;
+  if(page==="config"&&(!state.working||state.working.userId!==current.id))openWorkingConfig(current,current.role==="bu_lead"?current.businessUnit:state.governanceBU);
 
 
   state.page = page;
@@ -445,11 +486,12 @@ async function run(scope = "ready") {
     notify("No evaluable interaction selected. Check the import status and speaker mapping.", true);
     return;
   }
+  const withoutBaseline=target.filter(c=>!publishedBUrubric(c.businessUnit||"SHARE",state.rubric));
+  if(withoutBaseline.length){notify("Cannot run official QA: published rubric missing for "+[...new Set(withoutBaseline.map(c=>normalizeBU(c.businessUnit||"SHARE")))].join(", ")+". Publish a BU baseline first.",true);return;}
 
   /**
    * Lock the rubric during this batch.
    */
-  const snapshot = clone(state.rubric);
   const referenceSnapshot = clone(state.references);
 
   state.stopAfterCurrent = false;
@@ -492,6 +534,7 @@ async function run(scope = "ready") {
       state.selected = call.key;
       const startedAt = new Date().toISOString();
       const attemptId = "gemini-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9);
+      const snapshot = clone(publishedBUrubric(call.businessUnit||"SHARE",state.rubric));
       const activeCriteria = snapshot.criteria.filter(c => c.enabled === true);
       const contextCall = { ...call, businessUnit: call.businessUnit || "SHARE" };
       const selectedReferences = activeReferenceEntries(referenceSnapshot, contextCall, activeCriteria);
@@ -684,19 +727,14 @@ function download(kind) {
  * Increase rubric revision when settings change.
  */
 function save(message) {
-  state.rubric.revision++;
-
-  saveRubric(state.rubric);
-
-  render();
-  notify(message);
+  saveWorking(message.replace("New assessments use this revision.","Draft saved, official baseline unchanged."));
 }
 
 
 /** Capture editable rubric fields without committing until Save all. */
 function captureCriterionDraft() {
   if (state.page !== "config" || !root.querySelector("#cName")) return true;
-  const c = state.rubric.criteria.find(
+  const c = editingRubric().criteria.find(
     x => x.id === state.criterion
   );
 
@@ -762,14 +800,14 @@ function captureCriterionDraft() {
   }
     ruleWeights[input.dataset.rulePoints] = value;
   }
-  const currentRules = state.rubric.rules.deterministic || [];
-  state.rubric.rules.deterministic = currentRules.map(rule =>
+  const currentRules = editingRubric().rules.deterministic || [];
+  editingRubric().rules.deterministic = currentRules.map(rule =>
     editedRules.find(x => x.id === rule.id) || rule
   );
-  const greeting = state.rubric.rules.deterministic.find(x => x.id === "greeting_time");
-  const fallback = state.rubric.rules.deterministic.find(x => x.id === "fallback_greeting");
-  if (greeting) state.rubric.rules.greet7 = greeting.value;
-  if (fallback) state.rubric.rules.greet10 = fallback.value;
+  const greeting = editingRubric().rules.deterministic.find(x => x.id === "greeting_time");
+  const fallback = editingRubric().rules.deterministic.find(x => x.id === "fallback_greeting");
+  if (greeting) editingRubric().rules.greet7 = greeting.value;
+  if (fallback) editingRubric().rules.greet10 = fallback.value;
   Object.assign(c, {
     name,
     definition,
@@ -851,6 +889,44 @@ root.addEventListener("click", async event => {
     }catch{state.apiStatus="Unavailable";}
     render();return;
   }
+  if(button.id==="qa-test-working"){
+    const user=activeDemoUser();if(!canConfigureBU(user,state.governanceBU))return;
+    if(!captureCriterionDraft())return;
+    const selected=root.querySelector("#qa-preview-interaction")?.value;
+    const source=scopedDemoCalls(user,state.calls).find(c=>c.key===selected && normalizeBU(c.businessUnit||"SHARE")===state.governanceBU);
+    if(!source){notify("Choose an interaction from your selected BU.",true);return;}
+    if(state.running)return;
+    const testCall=clone(source);testCall.status="READY";testCall.findings=[];testCall.score=null;testCall.error="";
+    const snapshot=clone(editingRubric()),refs=clone(editingReferences());
+    const active=snapshot.criteria.filter(c=>c.enabled);
+    const contextual=activeReferenceEntries(refs,{...testCall,businessUnit:state.governanceBU},active);
+    state.running=true;notify("Testing working rubric. Official scores will not be modified.");
+    try{await assess(testCall,snapshot,new AbortController().signal,()=>{}, {revision:refs.revision,entries:contextual});
+      state.previewCall=testCall;
+      render();notify("Draft test complete. Official agent scorecards unchanged.");
+    }catch(e){notify("Draft test failed: "+String(e.message||e),true);}
+    finally{state.running=false;}
+    return;
+  }
+  if(button.id==="qa-save-working"){
+    if(!captureCriterionDraft())return;
+    saveWorking("Working configuration saved. Published baseline unchanged.");return;
+  }
+  if(button.id==="qa-publish-baseline"){
+    const user=activeDemoUser();if(!canConfigureBU(user,state.governanceBU)){notify("Publishing not allowed for this BU.",true);return;}
+    if(!captureCriterionDraft())return;
+    if(!confirm("Publish this baseline for "+state.governanceBU+"? Future official scores will use this rubric and agents will be notified."))return;
+    const before=publishedBUrubric(state.governanceBU,state.rubric);
+    const next=clone(editingRubric());next.revision=(Number(before?.revision)||0)+1;
+    if(isShareBU(state.governanceBU)){state.rubric=next;saveRubric(next);}else savePublishedBUrubric(state.governanceBU,next);
+    const official=state.references.datasets.filter(d=>!d.rows?.length||d.rows.some(r=>normalizeBU(r.businessUnit||"All")!==state.governanceBU));
+    const scoped=editingReferences().datasets.filter(d=>d.rows?.length&&d.rows.every(r=>normalizeBU(r.businessUnit||"All")===state.governanceBU));
+    const combined=new Map(official.map(x=>[x.id,x]));for(const d of scoped)combined.set(d.id,d);
+    state.references=saveReferenceLibrary({...state.references,revision:state.references.revision+1,datasets:[...combined.values()]});
+    const event=publishBaselineEvent(user,state.governanceBU,before,next);
+    state.working.rubric=clone(next);saveWorkingConfig(user,state.governanceBU,state.working);
+    render();notify("Baseline v"+next.revision+" published for "+state.governanceBU+". "+event.changes.length+" change details recorded for agents in this browser.");return;
+  }
   if(button.dataset.configTab) {
     if (state.configTab === button.dataset.configTab) return;
     if (state.configTab === "rubric" && !captureCriterionDraft()) return;
@@ -877,9 +953,10 @@ root.addEventListener("click", async event => {
   if (button.dataset.refDelete !== undefined) {
     if (!confirm("Delete this stored reference version from this browser?")) return;
     try {
-      state.references = saveReferenceLibrary(deleteReferenceDataset(state.references,button.dataset.refDelete));
+      state.working.references = deleteReferenceDataset(state.working.references,button.dataset.refDelete);
+      saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
       render();
-      notify("Reference version deleted. Future assessments use active files only.");
+      notify("Working reference version deleted; publish baseline to activate official changes.");
     } catch(e) { notify(e.message,true); }
     return;
   }
@@ -909,6 +986,7 @@ root.addEventListener("click", async event => {
   }
 
   if (button.dataset.pageGo) {
+    if(button.dataset.openConfigTab)state.configTab=button.dataset.openConfigTab;
     navigate(button.dataset.pageGo);
     return;
   }
@@ -1068,10 +1146,10 @@ root.addEventListener("click", async event => {
     if (!captureCriterionDraft()) return;
     const model = root.querySelector("#model");
     const globalInstructions = root.querySelector("#global");
-    if (model) state.rubric.model = model.value;
-    if (globalInstructions) state.rubric.instructions = globalInstructions.value;
+    if (model) editingRubric().model = model.value;
+    if (globalInstructions) editingRubric().instructions = globalInstructions.value;
     for (const input of root.querySelectorAll("[data-phrase-list]")) {
-      state.rubric.rules[input.dataset.phraseList] = input.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+      editingRubric().rules[input.dataset.phraseList] = input.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     }
     save("All rubric changes saved. New assessments use this revision.");
     return;
@@ -1099,10 +1177,10 @@ root.addEventListener("click", async event => {
       notify("Greeting thresholds must be whole seconds between 0 and 60; fallback cannot be shorter.", true);
       return;
     }
-    state.rubric.rules.deterministic = deterministic;
-    state.rubric.rules.greet7 = first.value;
-    state.rubric.rules.greet10 = fallback.value;
-    state.rubric.rules.greetingTerms = $("#rTerms").value
+    editingRubric().rules.deterministic = deterministic;
+    editingRubric().rules.greet7 = first.value;
+    editingRubric().rules.greet10 = fallback.value;
+    editingRubric().rules.greetingTerms = $("#rTerms").value
       .split(/\r?\n/).map(x => x.trim()).filter(Boolean);
     save("Deterministic rules saved. Only connected rules are executed; pending rules do not change scoring.");
     return;
@@ -1125,8 +1203,8 @@ root.addEventListener("click", async event => {
       return;
     }
 
-    state.rubric.instructions = value;
-    state.rubric.model =
+    editingRubric().instructions = value;
+    editingRubric().model =
       $("#model").value;
 
     save(
@@ -1150,6 +1228,11 @@ root.addEventListener(
         state.resultTab="scorecard";render();
       }catch(e){notify(e.message,true);}return;
     }
+    if(target.id==="qa-governance-bu"){
+      if(!captureCriterionDraft())return;
+      saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
+      try{openWorkingConfig(activeDemoUser(),target.value);render();}catch(e){notify(e.message,true);}return;
+    }
     if(target.id==="qa-director-bu"){
       state.directorBU=target.value;state.directorBrand="all";render();return;
     }
@@ -1162,11 +1245,13 @@ root.addEventListener(
       try {
         if (file.size > 500000) throw Error("CSV file exceeds 500 KB");
         if (!/\.csv$/i.test(file.name)) throw Error("Upload a .csv file");
-        state.references = saveReferenceLibrary(importReferenceDataset(
-          state.references,target.dataset.refUpload,file.name,await file.text()
-        ));
+        state.working.references = importReferenceDataset(
+          state.working.references,target.dataset.refUpload,file.name,await file.text()
+        );
+        validateScopedDataset(activeDemoUser(),state.governanceBU,state.working.references.datasets.at(-1));
+        saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
         render();
-        notify(file.name+" imported and activated. New assessments use the updated references.");
+        notify(file.name+" imported and activated. Publish to activate these references for official assessments.");
       } catch(e) {
         notify("Reference import failed: "+String(e.message||e),true);
         target.value="";
@@ -1176,11 +1261,12 @@ root.addEventListener(
 
     if (target.hasAttribute("data-ref-enabled")) {
       try {
-        state.references=saveReferenceLibrary(toggleReferenceDataset(
-          state.references,target.dataset.refEnabled,target.checked
-        ));
+        state.working.references=toggleReferenceDataset(
+          state.working.references,target.dataset.refEnabled,target.checked
+        );
+        saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
         render();
-        notify("Active references saved. New assessments use the updated library.");
+        notify("Active references saved. Publish to activate the official library.");
       } catch(e) { notify(e.message,true); }
       return;
     }
@@ -1198,9 +1284,9 @@ root.addEventListener(
               !Array.isArray(c.checkpoints)||c.checkpoints.length>12))
           throw Error("Not a supported QA rubric JSON");
         if(!confirm("Replace the personal demo rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
-        saveRubric(rubric);
-        state.rubric=loadRubric();
-        state.criterion=state.rubric.criteria[0]?.id||"greet7";
+        state.working.rubric=rubric;
+        saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
+        state.criterion=editingRubric().criteria[0]?.id||"greet7";
         render();notify("Rubric imported. Gemini remains the evaluation provider; check enabled criteria and save before assessing.");
       } catch(e) {notify("Rubric import failed: "+String(e.message||e),true);}
       return;
@@ -1218,8 +1304,10 @@ root.addEventListener(
         if(normalized.datasets.length!==library.datasets.length)
           throw Error("One or more library datasets have invalid structure");
         if(!confirm("Replace the personal demo reference library with this backup? The imported data will remain in this browser."))return;
-        state.references=saveReferenceLibrary(normalized);
-        render();notify(state.references.datasets.length+" reference dataset versions imported locally.");
+        for(const d of normalized.datasets)validateScopedDataset(activeDemoUser(),state.governanceBU,d);
+        state.working.references=normalized;
+        saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
+        render();notify(state.working.references.datasets.length+" reference dataset versions imported locally.");
       }catch(e){notify("Reference library import failed: "+String(e.message||e),true);}
       return;
     }
@@ -1278,18 +1366,18 @@ root.addEventListener(
 
     if (target.hasAttribute("data-enabled")) {
       const id = target.dataset.enabled;
-      if (!setCriterionEnabled(state.rubric, id, target.checked)) return;
+      if (!setCriterionEnabled(editingRubric(), id, target.checked)) return;
 
       // Make both qualitative and linked numeric checkboxes respond immediately.
       // Do not re-render: the user might have unsaved instruction/weight edits.
-      const criterion = state.rubric.criteria.find(c => c.id === id);
+      const criterion = editingRubric().criteria.find(c => c.id === id);
       if (id === state.criterion) {
         root.querySelectorAll("[data-anchor-enabled]").forEach(input => {
           const child = criterion.checkpoints?.[Number(input.dataset.anchorEnabled)];
           input.checked = !!child?.enabled;
         });
         root.querySelectorAll("[data-rule-enabled]").forEach(input => {
-          const child = state.rubric.rules.deterministic?.find(r => r.id === input.dataset.ruleEnabled);
+          const child = editingRubric().rules.deterministic?.find(r => r.id === input.dataset.ruleEnabled);
           input.checked = !!child?.enabled;
         });
       }
@@ -1299,18 +1387,18 @@ root.addEventListener(
     }
 
     if (target.hasAttribute("data-anchor-enabled") || target.hasAttribute("data-rule-enabled")) {
-      const criterion = state.rubric.criteria.find(c => c.id === state.criterion);
+      const criterion = editingRubric().criteria.find(c => c.id === state.criterion);
       if (!criterion) return;
       if (target.hasAttribute("data-anchor-enabled")) {
         const child = criterion.checkpoints?.[Number(target.dataset.anchorEnabled)];
         if (child) child.enabled = target.checked;
       } else {
-        const child = state.rubric.rules.deterministic?.find(r => r.id === target.dataset.ruleEnabled);
+        const child = editingRubric().rules.deterministic?.find(r => r.id === target.dataset.ruleEnabled);
         if (child && linkedRules(criterion.id).includes(child.id)) child.enabled = target.checked;
       }
       const activeQualitative = criterion.checkpoints?.some(a => a.enabled === true);
       const activeNumeric = linkedRules(criterion.id).some(id =>
-        state.rubric.rules.deterministic?.some(r => r.id === id && r.enabled === true)
+        editingRubric().rules.deterministic?.some(r => r.id === id && r.enabled === true)
       );
       // A partial selection keeps the parent active, but only chosen checks run.
       criterion.enabled = !!(activeQualitative || activeNumeric);

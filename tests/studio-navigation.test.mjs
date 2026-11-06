@@ -27,7 +27,7 @@ test("Scroll reset supports a missing nested viewport",()=>{
 test("Both Open Agents & Reports and Inspect assessment invoke top-resetting navigation",()=>{
   const app=readFileSync(new URL("../public/js/app.js",import.meta.url),"utf8");
   assert.match(app,/function navigate\(page\)\s*\{[\s\S]*?state\.page = page;\s*render\(\);[\s\S]*?scrollPageToTop\(window, document\);/);
-  assert.match(app,/if \(button\.dataset\.pageGo\)\s*\{\s*navigate\(button\.dataset\.pageGo\)/);
+  assert.match(app,/if \(button\.dataset\.pageGo\)[\s\S]*?navigate\(button\.dataset\.pageGo\)/);
   assert.match(app,/if \(button\.dataset\.open\)\s*\{[\s\S]*?navigate\("agents"\)/);
   assert.match(app,/state\.importFeedback = "";/);
   assert.doesNotMatch(app,/Select Evaluate to start assessment/);

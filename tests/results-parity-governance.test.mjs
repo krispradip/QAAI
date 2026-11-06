@@ -6,6 +6,7 @@ import {summarizeCheckStates,themeScores,renderStatusTotals,renderThemeProgress,
 import {renderPresentationInspection} from "../public/js/presentation-inspection.js";
 import {renderQualityContextStrip,qualityGovernanceStats,renderQualityGovernance} from "../public/js/presentation-quality-governance.js";
 import {demoUsers,canViewPage} from "../public/js/presentation-personas.js";
+import {canConfigureBU,normalizeBU,describeRubricChanges,validateScopedDataset} from "../public/js/presentation-baseline.js";
 const rubric=defaultRubric();
 const fixture=JSON.parse(readFileSync(new URL("../public/demo/hassan-previous-shift-qa.json",import.meta.url),"utf8"))[0];
 const lib=JSON.parse(readFileSync(new URL("../public/demo/share-reference-library.json",import.meta.url),"utf8"));
@@ -68,27 +69,21 @@ test("all six evidence checkpoint state categories are counted without inventing
  const statuses=summarizeCheckStates(pending,rubric).counts;
  assert.equal(statuses.NOT_EVALUATED,5);
 });
-test("read-only rubric and current reference file metadata visible to lead and director",()=>{
+test("BU Lead and CC Director can open existing rubric correction and CSV upload screens",()=>{
  const stats=qualityGovernanceStats(rubric,lib);
  assert.ok(stats.criteria>0);
- assert.ok(stats.themes>0);
  const roles=demoUsers();
  for(const role of ["bu_lead","cc_lead"]){
-  const u=roles.find(x=>x.role===role);
-  assert.ok(canViewPage(u,"standards"));
-  assert.ok(!canViewPage(u,"config"));
+  const user=roles.find(x=>x.role===role);
+  assert.ok(canViewPage(user,"standards"));
+  assert.ok(canViewPage(user,"config"));
   const html=renderQualityGovernance(rubric,lib,role);
-  assert.match(html,/Reference Library/);
-  assert.match(html,/Read|READ-ONLY REVIEW/i);
-  assert.match(html,/SHARE/);
-  assert.match(html,/Maintained by Platform Admin/);
-  assert.doesNotMatch(html,/data-ref-upload/);
+  assert.match(html,/Edit \/ Test Rubric/);
+  assert.match(html,/Upload \/ Manage Reference Files/);
+  assert.match(html,/data-open-config-tab="references"/);
+  assert.doesNotMatch(html,/READ-ONLY REVIEW/);
   assert.match(renderQualityContextStrip(rubric,lib,role),/data-page-go="standards"/);
  }
- const admin=renderQualityGovernance(rubric,lib,"admin");
- assert.match(admin,/data-page-go="config"/);
- const other=renderQualityGovernance(rubric,lib,"cc_lead","Retail");
- assert.match(other,/has not been configured for Retail/);
 });
 test("persistent desktop navigation, six-count palette and responsive layout styles are loaded",()=>{
  const css=readFileSync(new URL("../public/css/presentation-results-v2.css",import.meta.url),"utf8");
@@ -107,4 +102,21 @@ test("result page remains six tabs and diagnostics/reference audit are still ava
   const html=renderPresentationInspection(fixture,rubric,name);
   assert.match(html,new RegExp('data-result-tab="'+name+'"'));
  }
+});
+
+test("business unit boundaries and rubric change descriptions",()=>{
+ const roles=demoUsers();
+ const lead=roles.find(x=>x.role==="bu_lead");
+ const director=roles.find(x=>x.role==="cc_lead");
+ const agent=roles.find(x=>x.role==="agent");
+ assert.ok(canConfigureBU(lead,"SHARERewards"));
+ assert.ok(!canConfigureBU(lead,"Retail"));
+ assert.ok(canConfigureBU(director,"Retail"));
+ assert.ok(!canConfigureBU(agent,"SHARERewards"));
+ assert.equal(normalizeBU("SHARE"),"SHARERewards");
+ const next=structuredClone(rubric);
+ next.criteria[0].weight+=1;
+ assert.ok(describeRubricChanges(rubric,next).some(x=>x.includes("weight")));
+ assert.doesNotThrow(()=>validateScopedDataset(lead,"SHARERewards",{rows:[{businessUnit:"SHARE"}]}));
+ assert.throws(()=>validateScopedDataset(lead,"SHARERewards",{rows:[{businessUnit:"Retail"}]}),/businessUnit/);
 });

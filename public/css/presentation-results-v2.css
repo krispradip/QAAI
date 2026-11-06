@@ -102,3 +102,21 @@
 @media(max-width:1120px){.pb-status-counts{grid-template-columns:repeat(3,minmax(0,1fr))}.qa-governance-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.qa-governance-strip{grid-template-columns:1fr 1fr}.qa-governance-strip button{grid-column:1/-1;justify-self:start}}
 @media(max-width:720px){.pb-theme-grid,.qa-governance-groups,.qa-governance-files{grid-template-columns:1fr}.pb-status-counts{grid-template-columns:repeat(2,minmax(0,1fr))}.qa-governance-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.qa-governance-strip{grid-template-columns:1fr}.qa-governance-strip button{grid-column:auto}.qa-governance-criterion summary{flex-direction:column;align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.pb-theme-track i{transition:none}}
+
+/* Role-scoped quality configuration: distinguish drafts from published standards. */
+.qa-working-header{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:13px;margin-bottom:15px;border:1px solid #cdddfb;background:linear-gradient(110deg,#f7faff,#ebf1ff);padding:16px 18px}
+.qa-working-header>div:first-child{flex:1;min-width:210px}
+.qa-working-header h3{margin:3px 0 6px;color:#254781}
+.qa-working-header p,.qa-working-header small{font-size:11px;color:#60779f;margin:0}
+.qa-working-header label,.qa-working-preview label{font-size:11px;font-weight:700;color:#2e4a7b;display:flex;gap:6px;align-items:center}
+.qa-working-header select,.qa-working-preview select{max-width:230px;padding:8px;border-radius:8px;border:1px solid #d1dff6;background:white}
+.qa-working-actions,.qa-working-preview{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.qa-working-preview{width:100%;padding-top:10px;border-top:1px solid #d7e2f6}
+.qa-draft-preview{border:2px dashed #9bb4e6;padding:14px;border-radius:14px;margin-top:18px;background:#fcfdff}
+.qa-draft-notice{padding:12px;background:#e9f1ff;border-radius:9px;margin-bottom:13px;color:#244b91}
+.qa-draft-notice p{font-size:11px;margin:4px 0 0}
+.qa-baseline-alert{border:1px solid #ceddf4;background:#f5f9ff;margin-bottom:14px}
+.qa-baseline-alert b{color:#2b4b84}
+.qa-baseline-alert p{font-size:11px;color:#687f9f}
+.qa-baseline-alert details summary{cursor:pointer;color:#34578d;font-weight:700}
+@media(max-width:720px){.qa-working-header,.qa-working-preview{align-items:stretch;flex-direction:column}.qa-working-header select,.qa-working-preview select{max-width:100%}}
