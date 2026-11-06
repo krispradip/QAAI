@@ -18,7 +18,7 @@ export function renderUsagePage() {
     ["429 events",limited.length]
   ];
   return '<section class="panel pb-usage">'+
-    '<div class="pb-page-head"><div><small>GEMINI · PERSONAL DEMO</small><h2>AI Usage & Diagnostics</h2><p>Daily volumes, request stages, token consumption, and rate-limit events. All data stays in this browser.</p></div><button type="button" class="secondary" id="pb-export-usage">Export usage CSV</button></div>'+
+    '<div class="pb-page-head"><div><small>GEMINI · QUALITY INTELLIGENCE</small><h2>AI Usage & Diagnostics</h2><p>Daily volumes, request stages, token consumption, and rate-limit events. All data stays in this browser.</p></div><button type="button" class="secondary" id="pb-export-usage">Export usage CSV</button></div>'+
     '<div class="pb-usage-metrics">'+metrics.map(x=>'<article><small>'+e(x[0])+'</small><strong>'+e(x[1])+'</strong></article>').join("")+'</div>'+
     (unknown?'<p class="pb-note">Some attempts lack provider usage metadata. They are excluded from token totals; unavailable is not zero.</p>':"")+
     '<h3>Daily trends · UAE time</h3><div class="pb-table"><table><thead><tr><th>Date</th><th>Attempts</th><th>Success</th><th>Failed</th><th>Requests</th><th>429</th><th>Input</th><th>Output</th><th>Tokens</th></tr></thead><tbody>'+
@@ -28,6 +28,6 @@ export function renderUsagePage() {
     (!limited.length?'<p class="pb-note">No 429 events recorded yet.</p>':"")+
     '<h3>Assessment attempt ledger</h3><div class="pb-table"><table><thead><tr><th>Started (GST)</th><th>Interaction</th><th>Status</th><th>Model</th><th>Requests</th><th>Reported tokens</th><th>Failed stage</th></tr></thead><tbody>'+
     records.map(x=>'<tr>'+cell(t(x.startedAt))+cell(x.interactionId)+cell(x.status)+cell(x.model)+cell(x.aiTelemetry?.requests?.length||0)+cell(n(x.aiTelemetry?.totalTokens))+cell(x.aiTelemetry?.failedStage||"—")+'</tr>').join("")+'</tbody></table></div>'+
-    '<p class="pb-note">Billing estimate: token usage is provider-reported where available, but this is a browser-local demo ledger, not a centralized invoice. It does not include other users or applications.</p>'+
+    '<p class="pb-note">Billing estimate: token usage is provider-reported where available, but this is a browser-local usage ledger, not a centralized invoice. It does not include other users or applications.</p>'+
     '</section>';
 }
