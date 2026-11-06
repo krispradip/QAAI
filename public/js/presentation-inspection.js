@@ -56,6 +56,39 @@ function checkRow(a,call,criterion,finding) {
         '<p class="pb-note">'+escapeHtml(a.reason||finding?.reason||"Supporting evidence unavailable or inconclusive")+'</p>':""))+
     '</div>';
 }
+/**
+ * Business-facing explanation of a pending score.
+ * Shows the actual unscored criterion and supplied reason; it never changes
+ * scoring or treats missing audio/system evidence as a pass or fail.
+ */
+export function renderPendingEvidenceGaps(call,rubric) {
+  if(call?.status!=="COMPLETE" || Number.isFinite(call?.score?.score))return "";
+  const all=allChecks(call,rubric);
+  const unresolved=all.filter(({criterion,finding})=>
+    Number(criterion.weight)>0 && finding?.status!=="NOT_APPLICABLE" &&
+    (!finding || finding.status!=="SCORED" || !Number.isFinite(finding.score))
+  ).sort((a,b)=>Number(b.criterion.weight||0)-Number(a.criterion.weight||0));
+  if(!unresolved.length)return "";
+  const observed=Number.isFinite(call.score?.observedScore)?pct(call.score.observedScore):"—";
+  const coverage=pct(call.score?.coverage);
+  const rows=unresolved.slice(0,12).map(({criterion,finding,checks})=>{
+    const missing=checks.filter(x=>["UNKNOWN","UNVERIFIED","NOT_EVALUATED"].includes(checkpointState(x,call,criterion,finding)));
+    const sample=missing.slice(0,2).map(x=>x.text||x.id).filter(Boolean).join("; ");
+    const mode=criterion.mode==="audio"?"Audio or event evidence may be required"
+      :criterion.mode==="external"?"CRM / Genesys / system evidence may be required"
+      :"Transcript evidence or independent review is incomplete";
+    const explanation=sample||String(finding?.reason||mode).slice(0,240);
+    return '<li><div class="pb-gap-title"><b>'+escapeHtml(criterion.name||criterion.id)+'</b><span>'+escapeHtml(criterion.group||"Other")+' · weight '+escapeHtml(criterion.weight??"—")+'</span></div>'+
+      '<p>'+escapeHtml(explanation)+'</p><small>'+escapeHtml(mode)+'</small></li>';
+  }).join("");
+  return '<section class="pb-evidence-gaps" aria-label="Why combined QA is pending">'+
+    '<div class="pb-summary-head"><b>WHY IS COMBINED QA PENDING?</b><small>'+unresolved.length+' criteria without final scores</small></div>'+
+    '<p><strong>Observed '+escapeHtml(observed)+'</strong> is based only on fully scored criteria. Evidence coverage is <strong>'+escapeHtml(coverage)+'</strong>. Some rubric criteria lack sufficient verified evidence to finalize a combined score.</p>'+
+    '<details open><summary>Inspect unresolved criteria ('+unresolved.length+')</summary><ul class="pb-gap-list">'+rows+'</ul>'+
+    (unresolved.length>12?'<p class="pb-note">+'+(unresolved.length-12)+' additional unresolved criteria are listed in Evidence-linked assessment findings below.</p>':"")+
+    '</details><p class="pb-note">Audio, CRM and Genesys-dependent checks cannot be verified from transcript text alone. Review missing evidence and BU applicability; never mark unknown checks as met to force a final score.</p>'+
+    '</section>';
+}
 function scorecard(call,rubric,filter) {
   const sections=allChecks(call,rubric);
   let visible=0;
@@ -71,7 +104,7 @@ function scorecard(call,rubric,filter) {
   }).join("");
   const bar='<div class="pb-filter" role="group" aria-label="Filter findings">'+
     [["all","All findings"],["rule","Rule-based"],["ai","AI qualitative"]].map(x=>'<button type="button" data-finding-filter="'+x[0]+'" class="'+(filter===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'</div>';
-  return renderStatusTotals(call,rubric)+renderThemeProgress(call,rubric)+
+  return renderPendingEvidenceGaps(call,rubric)+renderStatusTotals(call,rubric)+renderThemeProgress(call,rubric)+
     '<section class="pb-scorecard"><div class="pb-heading"><h3>Evidence-linked assessment findings</h3><span>'+visible+' checks shown</span></div>'+bar+
     (content||'<p class="pb-empty">No checks available for the selected method.</p>')+
     '<details class="pb-collapse"><summary>Scoring explanation and coverage policy</summary><p>Theme scores are weighted across configured criteria, with separately reported evidence coverage. Observed scores include only supported, scored findings. Combined QA is finalized only when the assessment is complete and applicable evidence coverage is sufficient. An AI failure cannot finalize missing qualitative checks.</p></details>'+
@@ -114,9 +147,10 @@ function references(call) {
     files.map(x=>'<tr><td>'+escapeHtml(x.name)+'</td><td>'+escapeHtml(x.type)+'</td><td>v'+escapeHtml(x.version)+'</td><td>'+number(x.entries)+'</td></tr>').join("")+
     '</tbody></table></div><p class="pb-note">Selected entries were sent as guidance. This does not prove Gemini relied on a particular reference for a finding.</p></section>';
 }
-export function renderPresentationInspection(call,rubric,tab="scorecard",filter="all",evidenceView="all") {
+export function renderPresentationInspection(call,rubric,tab="scorecard",filter="all",evidenceView="all",options={}) {
   if(!call)return '<p class="pb-empty">Select an interaction to inspect.</p>';
-  const tabs=[["scorecard","Scorecard"],["transcript","Transcript"],["timeline","Agent timeline"],["insights","Key insights"],["diagnostics","AI Diagnostics"],["references","References"]];
+  const tabs=[["scorecard","Scorecard"],["transcript","Transcript"],["timeline","Agent timeline"],["insights","Key insights"],
+    ...(options.allowDiagnostics===true?[["diagnostics","AI Diagnostics"]]:[]),["references","References"]];
   const valid=tabs.some(x=>x[0]===tab)?tab:"scorecard";
   const result=valid==="scorecard"?scorecard(call,rubric,filter):
     valid==="transcript"?transcript(call,evidenceView):

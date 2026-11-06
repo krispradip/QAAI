@@ -120,3 +120,18 @@
 .qa-baseline-alert p{font-size:11px;color:#687f9f}
 .qa-baseline-alert details summary{cursor:pointer;color:#34578d;font-weight:700}
 @media(max-width:720px){.qa-working-header,.qa-working-preview{align-items:stretch;flex-direction:column}.qa-working-header select,.qa-working-preview select{max-width:100%}}
+
+/* Explain pending QA without turning missing evidence into a pass or penalty. */
+.pb-evidence-gaps{border:1px solid #e9d6ad;background:#fffbf2;border-radius:13px;padding:15px 17px;margin:13px 0;color:#4a5f7e}
+.pb-evidence-gaps .pb-summary-head{margin-bottom:7px}
+.pb-evidence-gaps .pb-summary-head b{color:#9b662d}
+.pb-evidence-gaps>p{font-size:12px;line-height:1.55}
+.pb-evidence-gaps details{margin:10px 0;padding:11px;border:1px solid #efe1c5;background:#fff;border-radius:10px}
+.pb-evidence-gaps summary{cursor:pointer;font-size:12px;font-weight:800;color:#5a6481}
+.pb-gap-list{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.pb-gap-list li{padding:10px;background:#fbfcff;border:1px solid #e2e9f4;border-radius:9px;min-width:0}
+.pb-gap-title{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:4px 8px}
+.pb-gap-title b{font-size:12px;color:#294777}
+.pb-gap-title span,.pb-gap-list small{font-size:10px;color:#73849e}
+.pb-gap-list p{margin:7px 0;color:#566b88;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:720px){.pb-gap-list{grid-template-columns:1fr}}

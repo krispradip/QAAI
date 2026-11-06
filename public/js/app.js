@@ -213,7 +213,7 @@ function render() {
     '<div class="qa-working-actions"><button type="button" class="secondary" id="qa-save-working">Save Working Draft</button><button type="button" class="primary" id="qa-publish-baseline">Publish Baseline</button></div>'+
     '<div class="qa-working-preview"><label>Test draft on interaction <select id="qa-preview-interaction"><option value="">Select interaction</option>'+scopedCalls.filter(c=>normalizeBU(c.businessUnit||"SHARE")===state.governanceBU).map(c=>'<option value="'+c.key+'">'+String(c.id||c.key).replace(/[&<>"]/g,"") +' · '+String(c.agent||"").replace(/[&<>"]/g,"")+'</option>').join("")+'</select></label><button type="button" class="secondary" id="qa-test-working">Run test (not official)</button></div>';
     root.prepend(bar);
-    if(state.previewCall){const preview=document.createElement("section");preview.className="qa-draft-preview";preview.innerHTML='<div class="qa-draft-notice"><b>WORKING-DRAFT PREVIEW — NOT AN OFFICIAL AGENT ASSESSMENT</b><p>Nothing from this test is added to official interaction history or agent scorecards.</p></div>'+renderPresentationInspection(state.previewCall,editingRubric());root.append(preview);}
+    if(state.previewCall){const preview=document.createElement("section");preview.className="qa-draft-preview";preview.innerHTML='<div class="qa-draft-notice"><b>WORKING-DRAFT PREVIEW — NOT AN OFFICIAL AGENT ASSESSMENT</b><p>Nothing from this test is added to official interaction history or agent scorecards.</p></div>'+renderPresentationInspection(state.previewCall,editingRubric(),"scorecard","all","all",{allowDiagnostics:user.role==="admin"});root.append(preview);}
   }
   if(state.page==="overview"&&user.role==="agent")root.innerHTML=renderAgentNotifications(user)+root.innerHTML;
   // Import corporate-format configuration backups locally without publishing
@@ -980,6 +980,7 @@ root.addEventListener("click", async event => {
     return;
   }
   if (button.dataset.resultTab) {
+    if(button.dataset.resultTab==="diagnostics"&&activeDemoUser()?.role!=="admin")return;
     state.resultTab = button.dataset.resultTab;
     render();
     return;
