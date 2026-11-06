@@ -6,7 +6,7 @@ Last prepared: 2026-11-06 (UTC)
 
 | Environment | Repository / branch | Last verified baseline | Scope |
 | --- | --- | --- | --- |
-| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `9b05b118638f1890604acea849a0fda97308c870` (2026-11-06, PR #26 merged, before this tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, presentation UI, browser-local history |
+| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `d9a94f9af3f74568ff8b3c6ea4ca1fa617b164ab` (2026-11-06, PR #27 merged, before this tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, browser-local interaction history |
 | Personal enterprise migration branch | `krispradip/QAAI` / `feature/corporate-azure-apim` | `70dee87bcd9a1f543af6bb7e5b5ef77d79b035ac` (2026-10-29 07:43 UTC) | Node + Docker + EKS hosting, company APIM / GPT-4o integration |
 | Corporate GitHub | `majidalfuttaim/customer-care` (the `QAMAFerAI` application) | **Not verified through this GitHub connection** | **PRIMARY LIVE DEMO for 26 November 2026**; corporate AWS/EKS, GPT-4o via APIM. Keep the existing corporate scoring engine and live UI as the authoritative showcase. |
 
@@ -79,6 +79,20 @@ Merged as `9b05b118638f1890604acea849a0fda97308c870` on 2026-11-06.
 - A **Why is Combined QA Pending?** panel now lists unresolved criteria and evidence requirements where observed score exists but coverage is insufficient (e.g., observed 90% / 46% coverage). Missing evidence is not turned into a pass/fail or an invented final score.
 - Qualis stability checks, import regression and QA.MAFer.AI regression workflows all passed on the PR branch.
 - The merge is GitHub verified; current Cloudflare Worker serving this main SHA and final on-screen UX **not independently verified**.
+
+## Personal main — polished fallback and simplified roles (PR #27)
+
+Merged as `d9a94f9af3f74568ff8b3c6ea4ca1fa617b164ab` on 2026-11-06.
+
+- **Exactly three default personas:** Agent (Hassan Aly), BU Lead (Rima Soliman), Platform Admin (Pradip Krishnamoorthy). The CC Director account was removed from the personal login and cannot authenticate through existing browser-local sessions. CC Director remains a separate corporate governance requirement; this removal applies **only** to the personal fallback.
+- Platform Admin retains the cross-BU portfolio/reporting page. BU Lead remains limited to assigned BU; Agent remains read-only for own completed assessments.
+- Removed user-visible 'demo', 'sample' and 'synthetic' presentation labels from login, evaluation controls, agent records, user administration, BU portfolio and usage screens.
+- **Removed fabricated BU performance numbers**. Every non-null QA score, volume and agent count in the personal portfolio derives from actual locally saved interactions. Unavailable BUs remain unscored, not represented by fictional metrics.
+- Disabled bundled auto-seeding of transcripts, pre-scored Hassan interactions and reference library assets. Existing bundled records and `synthetic-` reference datasets are selectively purged on browser startup; imported real or approved anonymized records are retained.
+- Removed publicly served `public/demo/` assets. Test-only examples moved into `tests/fixtures/` for regression validation. Internal technical identifiers and tests remain distinguishable from live business data.
+- **Security caveat remains visible**: personal access selects an email and does not verify identity. It is not corporate authentication. Do not upload sensitive records to an unauthenticated publicly hosted personal environment.
+- All three workflows (QA.MAFer.AI Regression Tests, Qualis import regression, Qualis stability checks) succeeded before merge. Actual Cloudflare deployment/render check remains unverified.
+- Corporate GitHub and corporate AWS/APIM are **unchanged**.
 
 ## Ongoing change-control
 
