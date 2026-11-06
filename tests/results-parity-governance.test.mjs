@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {defaultRubric} from "../public/js/config.js";
 import {summarizeCheckStates,themeScores,renderStatusTotals,renderThemeProgress,renderScoreStatus,checkpointState} from "../public/js/presentation-themes.js";
-import {renderPresentationInspection} from "../public/js/presentation-inspection.js";
+import {renderPresentationInspection,renderPendingEvidenceGaps} from "../public/js/presentation-inspection.js";
 import {renderQualityContextStrip,qualityGovernanceStats,renderQualityGovernance} from "../public/js/presentation-quality-governance.js";
 import {demoUsers,canViewPage} from "../public/js/presentation-personas.js";
 import {canConfigureBU,normalizeBU,describeRubricChanges,validateScopedDataset} from "../public/js/presentation-baseline.js";
@@ -96,12 +96,30 @@ test("persistent desktop navigation, six-count palette and responsive layout sty
  assert.match(css,/@media\(max-width:720px\)/);
  assert.match(html,/presentation-results-v2\.css/);
 });
-test("result page remains six tabs and diagnostics/reference audit are still available",()=>{
- const tabs=["scorecard","transcript","timeline","insights","diagnostics","references"];
- for(const name of tabs) {
-  const html=renderPresentationInspection(fixture,rubric,name);
-  assert.match(html,new RegExp('data-result-tab="'+name+'"'));
+test("diagnostics are hidden from BU Lead and CC Director results but preserved for platform admin",()=>{
+ const businessTabs=["scorecard","transcript","timeline","insights","references"];
+ for(const role of ["bu_lead","cc_lead","agent"]){
+  const html=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:false});
+  assert.doesNotMatch(html,/data-result-tab="diagnostics"/);
+  assert.doesNotMatch(html,/AI Evaluation Diagnostics/);
+  for(const name of businessTabs)assert.match(html,new RegExp('data-result-tab="'+name+'"'));
  }
+ const admin=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:true});
+ assert.match(admin,/data-result-tab="diagnostics"/);
+ assert.match(admin,/AI Evaluation Diagnostics/);
+});
+test("pending 90 observed and 46 coverage explain actual unresolved criteria without creating a final QA score",()=>{
+ const c={...fixture,status:"COMPLETE",score:{score:null,observedScore:90,coverage:46},
+  findings:(fixture.findings||[]).filter(f=>f.status==="SCORED").slice(0,2)};
+ const h=renderPresentationInspection(c,rubric,"scorecard");
+ assert.match(h,/COMBINED QA SCORE/);
+ assert.match(h,/Pending/);
+ assert.match(h,/Observed QA 90%/);
+ assert.match(h,/46% evidence coverage/);
+ assert.match(h,/WHY IS COMBINED QA PENDING/);
+ assert.match(h,/Inspect unresolved criteria/);
+ assert.match(h,/criterion|evidence|checkpoints/i);
+ assert.match(renderPendingEvidenceGaps(c,rubric),/unresolved criteria/i);
 });
 
 test("business unit boundaries and rubric change descriptions",()=>{
