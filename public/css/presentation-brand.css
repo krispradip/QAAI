@@ -263,3 +263,6 @@ body.qa-demo-login-open #view{width:min(1060px,100%)}
 .qa-ref-empty{border-color:#bcd2f4;background:#f6faff;color:#5e78a1}
 .qa-agent-inspection>.panel-heading h3{color:#244f89}
 body:has(.studio-v5) .topbar{border-color:#d9e6fa}
+
+/* Agent-only completed assessment status, no evaluation CTA. */
+.qa-agent-readonly-note{display:inline-flex;align-items:center;gap:8px;background:#e6f5ff20;border:1px solid #7accff77;color:#e0f8ff;font-size:12px;font-weight:750;border-radius:999px;padding:10px 15px;margin-top:7px;letter-spacing:.01em}
