@@ -59,13 +59,13 @@ export function demoPermissions(user){
   switch(user?.role){
     case "agent":return new Set(["overview","agents"]);
     case "bu_lead":return new Set(["overview","studio","agents"]);
-    case "cc_lead":return new Set(["portfolio","overview","agents"]);
+    case "cc_lead":return new Set(["portfolio","overview","studio","agents"]);
     case "admin":return new Set(["admin","portfolio","overview","studio","agents","usage","config"]);
     default:return new Set();
   }
 }
 export function canViewPage(user,page){return demoPermissions(user).has(page);}
-export function canEvaluate(user){return user?.role==="bu_lead"||user?.role==="admin";}
+export function canEvaluate(user){return !!user?.active && ["bu_lead","cc_lead","admin"].includes(user.role); }
 export function callBU(call){
   return text(call?.businessUnit||call?.bu||call?.meta?.businessUnit||
     (/\bshare\b/i.test(call?.queue||"")?"SHARE":"SHARE"),60)||"SHARE";
@@ -74,7 +74,7 @@ export function demoCallVisible(user,call){
   if(!user?.active)return false;
   if(user.role==="admin"||user.role==="cc_lead")return true;
   if(callBU(call)!=="SHARE")return false;
-  return user.role==="bu_lead" || (user.role==="agent" && call.agent===user.agent);
+  return user.role==="bu_lead" || (user.role==="agent" && call.agent===user.agent && call.status==="COMPLETE" && Number.isFinite(call.score?.score));
 }
 export function scopedDemoCalls(user,calls){return (calls||[]).filter(c=>demoCallVisible(user,c));}
 export function createDemoUser(input){
