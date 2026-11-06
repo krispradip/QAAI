@@ -14,7 +14,7 @@ globalThis.localStorage={
 globalThis.sessionStorage={
  getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,String(v)),removeItem:k=>session.delete(k)
 };
-const fixtures=JSON.parse(readFileSync(new URL("../public/demo/hassan-previous-shift-qa.json",import.meta.url),"utf8"));
+const fixtures=JSON.parse(readFileSync(new URL("./fixtures/qa-agent-assessments.json",import.meta.url),"utf8"));
 test("three assigned MAF persona identifiers map to expected roles",()=>{
  const expected=[
   ["Hassan.Aly@maf.ae","agent","Hassan Aly"],
