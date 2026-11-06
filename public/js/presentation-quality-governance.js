@@ -76,5 +76,5 @@ export function renderQualityGovernance(rubric,library,role,bu="SHARE"){
   '<button class="secondary" type="button" data-page-go="config" data-open-config-tab="references">Upload / Manage Reference Files</button>'+'</div>'+
   (active.length?'<div class="qa-governance-files">'+active.map(refFile).join("")+'</div>':
     '<p class="qa-governance-warning">No active reference files are available in this browser. Ask the Platform Admin to configure the library.</p>')+
-  '<p class="pb-note">Personal presentation limitation: browser-local rubric and reference data do not synchronize across users, browsers or devices. Enterprise deployment needs centrally managed storage and authenticated role permissions.</p></section></div>';
+  '<p class="pb-note">Local workspace: rubric and reference data are stored in this browser and do not synchronize between users or devices. Central storage and authenticated permissions are required for enterprise use.</p></section></div>';
 }
