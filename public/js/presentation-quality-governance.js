@@ -1,6 +1,6 @@
 /**
  * Rubric and Reference Library visibility with leadership access to the existing editor.
- * BU Lead edits are scoped to the assigned BU; CC Director can select any BU.
+ * BU Lead edits are scoped to the assigned BU; Platform Admin can select any BU.
  * The current personal Gemini prototype has only an actual SHARE baseline
  * rubric. Other business-unit rubrics are not falsely presented as ready.
  */
@@ -17,7 +17,7 @@ export function qualityGovernanceStats(rubric,library){
 }
 export function renderQualityContextStrip(rubric,library,role){
  const stats=qualityGovernanceStats(rubric,library);
- if(!["bu_lead","cc_lead","admin"].includes(role))return "";
+ if(!["bu_lead","admin"].includes(role))return "";
  return '<section class="qa-governance-strip" aria-label="QA rubric and reference library">'+
   '<div><small>ACTIVE QUALITY GOVERNANCE</small><strong>SHARE QA Rubric · Rev '+esc(stats.rubricRevision)+'</strong>'+
   '<span>'+stats.criteria+' criteria · '+stats.themes+' themes · '+stats.checkpoints+' AI checkpoints</span></div>'+
