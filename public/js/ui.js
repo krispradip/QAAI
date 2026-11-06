@@ -1,3 +1,4 @@
+import {renderAgentRecentAssessments} from "./presentation-agent-home.js";
 /**
  * QA-UI-001 | Qualis v2.2.0
  *
@@ -192,6 +193,8 @@ export function overview(calls, rubric, selectedAgent = "", period = { mode:"all
 
       ${tableAgents(selectedAgent ? calls.filter(c => c.agent === selectedAgent) : calls)}
     </section>
+
+    ${agentView ? renderAgentRecentAssessments(calls, selectedAgent) : ""}
 
     <section class="panel">
       <div class="panel-heading">
