@@ -62,14 +62,14 @@
         "line": 6,
         "speaker": "customer",
         "text": "That helps, thank you.",
-        "timestamp": "00:16",
+        "timestamp": "01:16",
         "seconds": 76
       },
       {
         "line": 7,
         "speaker": "agent",
         "text": "Thank you for contacting SHARE. Have a great day.",
-        "timestamp": "00:45",
+        "timestamp": "01:45",
         "seconds": 105
       }
     ],
@@ -384,14 +384,14 @@
         "line": 6,
         "speaker": "customer",
         "text": "That helps, thank you.",
-        "timestamp": "00:16",
+        "timestamp": "01:16",
         "seconds": 76
       },
       {
         "line": 7,
         "speaker": "agent",
         "text": "Thank you for calling SHARE. Goodbye.",
-        "timestamp": "00:45",
+        "timestamp": "01:45",
         "seconds": 105
       }
     ],
