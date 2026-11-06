@@ -123,3 +123,10 @@ export function mergeImported(previous, imported) {
 export async function clearHistory() {
   await transaction("readwrite", store => store.clear());
 }
+
+/** Remove only explicitly identified bundled fixture records; preserve imported history. */
+export async function removeHistoryKeys(keys) {
+  if(!Array.isArray(keys)||!keys.length)return;
+  const unique=[...new Set(keys.filter(k=>typeof k==="string"&&k.length))];
+  await transaction("readwrite",store=>{for(const key of unique)store.delete(key);});
+}
