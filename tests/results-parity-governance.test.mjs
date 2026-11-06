@@ -8,8 +8,8 @@ import {renderQualityContextStrip,qualityGovernanceStats,renderQualityGovernance
 import {demoUsers,canViewPage} from "../public/js/presentation-personas.js";
 import {canConfigureBU,normalizeBU,describeRubricChanges,validateScopedDataset} from "../public/js/presentation-baseline.js";
 const rubric=defaultRubric();
-const fixture=JSON.parse(readFileSync(new URL("../public/demo/hassan-previous-shift-qa.json",import.meta.url),"utf8"))[0];
-const lib=JSON.parse(readFileSync(new URL("../public/demo/share-reference-library.json",import.meta.url),"utf8"));
+const fixture=JSON.parse(readFileSync(new URL("./fixtures/qa-agent-assessments.json",import.meta.url),"utf8"))[0];
+const lib=JSON.parse(readFileSync(new URL("./fixtures/qa-reference-library.json",import.meta.url),"utf8"));
 
 test("combined-score card uses finalized synthetic score only for completed result",()=>{
  const status=renderScoreStatus(fixture);
@@ -69,11 +69,11 @@ test("all six evidence checkpoint state categories are counted without inventing
  const statuses=summarizeCheckStates(pending,rubric).counts;
  assert.equal(statuses.NOT_EVALUATED,5);
 });
-test("BU Lead and CC Director can open existing rubric correction and CSV upload screens",()=>{
+test("BU Lead and Platform Admin can open existing rubric correction and CSV upload screens",()=>{
  const stats=qualityGovernanceStats(rubric,lib);
  assert.ok(stats.criteria>0);
  const roles=demoUsers();
- for(const role of ["bu_lead","cc_lead"]){
+ for(const role of ["bu_lead","admin"]){
   const user=roles.find(x=>x.role===role);
   assert.ok(canViewPage(user,"standards"));
   assert.ok(canViewPage(user,"config"));
@@ -96,9 +96,9 @@ test("persistent desktop navigation, six-count palette and responsive layout sty
  assert.match(css,/@media\(max-width:720px\)/);
  assert.match(html,/presentation-results-v2\.css/);
 });
-test("diagnostics are hidden from BU Lead and CC Director results but preserved for platform admin",()=>{
+test("diagnostics are hidden from BU Lead results but preserved for platform admin",()=>{
  const businessTabs=["scorecard","transcript","timeline","insights","references"];
- for(const role of ["bu_lead","cc_lead","agent"]){
+ for(const role of ["bu_lead","agent"]){
   const html=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:false});
   assert.doesNotMatch(html,/data-result-tab="diagnostics"/);
   assert.doesNotMatch(html,/AI Evaluation Diagnostics/);
@@ -125,11 +125,11 @@ test("pending 90 observed and 46 coverage explain actual unresolved criteria wit
 test("business unit boundaries and rubric change descriptions",()=>{
  const roles=demoUsers();
  const lead=roles.find(x=>x.role==="bu_lead");
- const director=roles.find(x=>x.role==="cc_lead");
+ const admin=roles.find(x=>x.role==="admin");
  const agent=roles.find(x=>x.role==="agent");
  assert.ok(canConfigureBU(lead,"SHARERewards"));
  assert.ok(!canConfigureBU(lead,"Retail"));
- assert.ok(canConfigureBU(director,"Retail"));
+ assert.ok(canConfigureBU(admin,"Retail"));
  assert.ok(!canConfigureBU(agent,"SHARERewards"));
  assert.equal(normalizeBU("SHARE"),"SHARERewards");
  const next=structuredClone(rubric);

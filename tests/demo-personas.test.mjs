@@ -33,20 +33,18 @@ test("BU lead sees all SHARE agents, no other BUs",()=>{
   assert.equal(canViewPage(u,"portfolio"),false);
   assert.equal(canEvaluate(u),true);
 });
-test("customer care lead accesses cross-BU demo and rubric configuration but not admin",()=>{
-  const u=chooseDemoUser("demo-cclead-001");
-  assert.equal(canViewPage(u,"portfolio"),true);
-  assert.equal(canViewPage(u,"admin"),false);
-  assert.equal(canViewPage(u,"config"),true);
-  assert.equal(canEvaluate(u),true);
-  assert.equal(canViewPage(u,"studio"),true);
-  assert.equal(scopedDemoCalls(u,calls).length,3);
-  const html=renderDirectorPortfolio(calls);
-  assert.match(html,/Carrefour/);
-  assert.match(html,/Entertainment · VOX/);
-  assert.match(html,/SHARE/);
-  assert.match(html,/Synthetic demo/);
-  assert.equal(shareSummary(calls.slice(0,2)).quality,95);
+test("platform admin owns cross-BU reporting and the removed director account cannot log in",()=>{
+ const u=chooseDemoUser("demo-admin-001");
+ assert.equal(canViewPage(u,"portfolio"),true);
+ assert.equal(canViewPage(u,"config"),true);
+ assert.equal(canEvaluate(u),true);
+ assert.equal(scopedDemoCalls(u,calls).length,3);
+ assert.throws(()=>chooseDemoUser("demo-cclead-001"),/not active/);
+ const html=renderDirectorPortfolio(calls);
+ assert.match(html,/Carrefour/);
+ assert.match(html,/Entertainment · VOX/);
+ assert.match(html,/No assessed interactions available/);
+ assert.equal(shareSummary(calls.slice(0,2)).quality,95);
 });
 test("admin manages demo users, can restore users, cannot offboard recovery admin",()=>{
   const admin=chooseDemoUser("demo-admin-001");
@@ -55,7 +53,7 @@ test("admin manages demo users, can restore users, cannot offboard recovery admi
   assert.equal(canViewPage(admin,"config"),true);
   const user=createDemoUser({name:"Test Advisor",email:"test.advisor@example.com",role:"agent",businessUnit:"SHARE",agent:"Test Advisor"});
   assert.ok(demoUsers().some(x=>x.id===user.id));
-  assert.match(renderDemoAdmin(demoUsers(),[],calls),/Onboard demo user/);
+  assert.match(renderDemoAdmin(demoUsers(),[],calls),/Onboard user/);
   setDemoUserActive(user.id,false);
   assert.ok(demoUsers().find(x=>x.id===user.id).active===false);
   setDemoUserActive(user.id,true);
@@ -70,11 +68,11 @@ test("demo navigation hides disallowed pages",()=>{
   assert.doesNotMatch(html,/Config/);
 });
 test("synthetic fixture data is populated and explicitly marked as demo",async()=>{
-  const content=await readFile(new URL("../public/demo/share-synthetic-transcripts.json",import.meta.url),"utf8");
+  const content=await readFile(new URL("./fixtures/qa-transcripts.json",import.meta.url),"utf8");
   const rows=JSON.parse(content);
   assert.ok(rows.length>=3);
   assert.ok(rows.every(x=>x.id.startsWith("DEMO-")&&x.turns.length>=5));
-  const ref=JSON.parse(await readFile(new URL("../public/demo/share-reference-library.json",import.meta.url),"utf8"));
+  const ref=JSON.parse(await readFile(new URL("./fixtures/qa-reference-library.json",import.meta.url),"utf8"));
   assert.equal(ref.datasets.length,4);
   assert.ok(ref.datasets.every(x=>x.name.includes("synthetic")&&x.rows.length));
 });

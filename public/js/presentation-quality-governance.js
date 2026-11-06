@@ -1,7 +1,7 @@
 /**
  * Rubric and Reference Library visibility with leadership access to the existing editor.
- * BU Lead edits are scoped to the assigned BU; CC Director can select any BU.
- * The current personal Gemini prototype has only an actual SHARE baseline
+ * BU Lead edits are scoped to the assigned BU; Platform Admin can select any BU.
+ * The current Gemini workspace has only an available SHARE baseline
  * rubric. Other business-unit rubrics are not falsely presented as ready.
  */
 import {REFERENCE_SCHEMAS} from "./reference.js";
@@ -17,7 +17,7 @@ export function qualityGovernanceStats(rubric,library){
 }
 export function renderQualityContextStrip(rubric,library,role){
  const stats=qualityGovernanceStats(rubric,library);
- if(!["bu_lead","cc_lead","admin"].includes(role))return "";
+ if(!["bu_lead","admin"].includes(role))return "";
  return '<section class="qa-governance-strip" aria-label="QA rubric and reference library">'+
   '<div><small>ACTIVE QUALITY GOVERNANCE</small><strong>SHARE QA Rubric · Rev '+esc(stats.rubricRevision)+'</strong>'+
   '<span>'+stats.criteria+' criteria · '+stats.themes+' themes · '+stats.checkpoints+' AI checkpoints</span></div>'+
@@ -76,5 +76,5 @@ export function renderQualityGovernance(rubric,library,role,bu="SHARE"){
   '<button class="secondary" type="button" data-page-go="config" data-open-config-tab="references">Upload / Manage Reference Files</button>'+'</div>'+
   (active.length?'<div class="qa-governance-files">'+active.map(refFile).join("")+'</div>':
     '<p class="qa-governance-warning">No active reference files are available in this browser. Ask the Platform Admin to configure the library.</p>')+
-  '<p class="pb-note">Personal presentation limitation: browser-local rubric and reference data do not synchronize across users, browsers or devices. Enterprise deployment needs centrally managed storage and authenticated role permissions.</p></section></div>';
+  '<p class="pb-note">Local workspace: rubric and reference data are stored in this browser and do not synchronize between users or devices. Central storage and authenticated permissions are required for enterprise use.</p></section></div>';
 }

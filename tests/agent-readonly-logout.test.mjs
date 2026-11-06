@@ -48,8 +48,8 @@ test("Agent My Performance has no evaluations, reassessment or Studio shortcut",
   assert.doesNotMatch(html,/id="rerunAgent"/);
   assert.doesNotMatch(html,/Evaluate interactions/);
 });
-test("SHARE lead, CC director and admin may run independent evaluations",()=>{
-  for(const id of ["demo-bulead-001","demo-cclead-001","demo-admin-001"]){
+test("SHARE lead and admin may run independent evaluations",()=>{
+  for(const id of ["demo-bulead-001","demo-admin-001"]){
     const user=chooseDemoUser(id);
     assert.equal(canViewPage(user,"studio"),true,id);
     assert.equal(canEvaluate(user),true,id);

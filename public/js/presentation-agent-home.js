@@ -13,7 +13,7 @@ export function renderAgentRecentAssessments(calls,agent){
   '</tr></thead><tbody>'+records.map(c=>'<tr><td><b>'+esc(c.id||c.key)+'</b></td>'+
   '<td>'+esc(gst(c.start))+'</td><td><strong>'+Math.round(c.score.score)+'%</strong></td>'+
   '<td>'+(Number.isFinite(c.score.coverage)?Math.round(c.score.coverage)+"%":"—")+'</td>'+
-  '<td>'+(c.source==="synthetic_presentation"?'<span class="qa-source demo">Sample assessment</span>':'Saved assessment')+'</td>'+
+  '<td>Saved assessment</td>'+
   '<td><button type="button" class="link" data-open="'+esc(c.key)+'">Inspect QA →</button></td></tr>').join("")+'</tbody></table></div>':
   '<div class="empty">No completed QA assessments are available for this agent in this browser. Results will appear after an authorized lead completes an assessment.</div>';
  return '<section class="panel qa-recent-agent-results"><div class="panel-heading"><div>'+

@@ -13,7 +13,7 @@ export const normalizeBU=bu=>["SHARE","SHARERewards"].includes(String(bu||""))?"
 export const isShareBU=bu=>normalizeBU(bu)==="SHARERewards";
 export function canConfigureBU(user,bu){
  if(!user?.active)return false;
- return user.role==="admin"||user.role==="cc_lead"||(user.role==="bu_lead"&&normalizeBU(user.businessUnit)===normalizeBU(bu));
+ return user.role==="admin"||(user.role==="bu_lead"&&normalizeBU(user.businessUnit)===normalizeBU(bu));
 }
 export function publishedBUrubric(bu,shareRubric){
  if(isShareBU(bu))return shareRubric;

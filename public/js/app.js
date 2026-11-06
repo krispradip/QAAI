@@ -27,14 +27,13 @@ import {
 
 import {
   parseExport,
-  mapSpeakers,
-  SAMPLE
+  mapSpeakers
 } from "./parser.js";
 
 import {
   assess
 } from "./engine.js";
-import { loadHistory, saveHistory, mergeImported, clearHistory } from "./history.js";
+import { loadHistory, saveHistory, mergeImported, clearHistory, removeHistoryKeys } from "./history.js";
 import { applyPeriod } from "./reporting.js";
 import {loadReferenceLibrary, saveReferenceLibrary, importReferenceDataset, toggleReferenceDataset, deleteReferenceDataset, csvTemplate, activeReferenceEntries, normalizeReferenceLibrary} from "./reference.js";
 import {configShell, referenceLibraryView} from "./reference-ui.js";
@@ -85,7 +84,7 @@ const state = {
   evalProgress: readProgress(typeof localStorage === "undefined" ? null : localStorage),
 
   message:
-    "Upload a Genesys file or load the synthetic example",
+    "Upload a Genesys transcript or paste an interaction",
 
   controller: null
 };
@@ -110,7 +109,7 @@ const titles = {
 
   portfolio: ["BU Performance", "Cross-business-unit quality, volume and coverage."],
   standards: ["Rubric & References", "View active quality standards and approved reference context."],
-  admin: ["Platform Administration", "Demo user lifecycle, platform status and governance."],
+  admin: ["Platform Administration", "User lifecycle, platform status and governance."],
   config: [
     "Config",
     "Manage QA scoring parameters and approved evaluation reference materials."
@@ -148,7 +147,7 @@ function render() {
   const previousPanel = preserveScroll && state.configTab === "rubric" ? root.querySelector(".configuration .index") : null;
   const previousPanelY = previousPanel?.scrollTop || 0;
   const user=activeDemoUser();
-  // A fresh tab begins at the simulated persona login. This is never
+  // A fresh tab begins at browser-local workspace selection. This is never
   // an identity or security boundary; password is intentionally ignored.
   if(!user){
     document.body?.classList?.add?.("qa-demo-login-open");
@@ -160,7 +159,7 @@ function render() {
     return;
   }
   document.body?.classList?.remove?.("qa-demo-login-open");
-  if(!canViewPage(user,state.page))state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+  if(!canViewPage(user,state.page))state.page=user.role==="admin"?"admin":"overview";
   if(state.page==="config"&&(!state.working||state.working.userId!==user.id))openWorkingConfig(user,user.role==="bu_lead"?user.businessUnit:state.governanceBU);
   const scopedCalls=scopedDemoCalls(user,state.calls);
   if(state.selected&&!scopedCalls.some(c=>c.key===state.selected))state.selected=null;
@@ -200,7 +199,7 @@ function render() {
                 : referenceLibraryView(editingReferences())
             );
 
-  if((state.page==="overview"&&user.role==="bu_lead") || (state.page==="portfolio"&&user.role==="cc_lead") || (state.page==="admin"&&user.role==="admin")) {
+  if((state.page==="overview"&&user.role==="bu_lead") || (state.page==="admin"&&user.role==="admin")) {
     root.innerHTML=renderQualityContextStrip(state.rubric,state.references,user.role)+root.innerHTML;
   }
 
@@ -222,7 +221,7 @@ function render() {
     const bar=document.createElement("div");
     bar.className="qa-local-config-restore";
     bar.innerHTML=state.configTab==="rubric"
-      ? '<div><b>Load QA rubric backup</b><small>Import a saved rubric JSON. Its GPT-4o model selection will be mapped to Gemini for this personal demo. Existing rubric settings are replaced.</small></div><label class="secondary qa-local-file-btn">Import rubric JSON<input type="file" id="qa-import-rubric" accept=".json,application/json" hidden></label>'
+      ? '<div><b>Load QA rubric backup</b><small>Import a saved rubric JSON. Its GPT-4o model selection will be mapped to Gemini for this personal workspace. Existing rubric settings are replaced.</small></div><label class="secondary qa-local-file-btn">Import rubric JSON<input type="file" id="qa-import-rubric" accept=".json,application/json" hidden></label>'
       : '<div><b>Load reference library backup</b><small>Import your versioned library JSON into this browser only. Files are not committed to GitHub or uploaded to Cloudflare until selected entries are sent for a Gemini assessment.</small></div><label class="secondary qa-local-file-btn">Import library JSON<input type="file" id="qa-import-reference-library" accept=".json,application/json" hidden></label>';
     root.prepend(bar);
   }
@@ -292,7 +291,7 @@ function notify(message, error = false) {
 function navigate(page) {
   if (state.running) return;
   const current=activeDemoUser();
-  if(!canViewPage(current,page)){notify("This page is outside the selected demo role.",true);return;}
+  if(!canViewPage(current,page)){notify("This page is outside your workspace permissions.",true);return;}
   if(current.role==="agent" && page==="agents" && !state.selected){
     const completed=scopedDemoCalls(current,state.calls);
     state.selected=completed.at(-1)?.key||null;
@@ -350,7 +349,7 @@ function filterRows() {
  * Require mapping when named speakers have unknown roles.
  */
 function load(text, filename) {
-  if(!canEvaluate(activeDemoUser())){notify("This demo persona cannot import or evaluate interactions.",true);return;}
+  if(!canEvaluate(activeDemoUser())){notify("Your account cannot import or evaluate interactions.",true);return;}
   if (state.running) {
     notify("Wait for the current evaluation to finish before importing.", true);
     return;
@@ -471,7 +470,7 @@ function paintProgress() {
 async function run(scope = "ready") {
   if (state.running) return;
   const demoUser=activeDemoUser();
-  if(!canEvaluate(demoUser)){notify("Only the BU Lead, CC Director and Platform Admin can run evaluations.",true);return;}
+  if(!canEvaluate(demoUser)){notify("Only BU Leads and Platform Admin can run evaluations.",true);return;}
 
   const evaluable = c => c && ["READY", "ERROR", "COMPLETE"].includes(c.status)&&scopedDemoCalls(demoUser,[c]).length===1;
   const target = scope === "all"
@@ -878,7 +877,7 @@ root.addEventListener("click", async event => {
   if(button.dataset.demoUserToggle){
     if(activeDemoUser().role!=="admin")return;
     try{const existing=demoUsers().find(x=>x.id===button.dataset.demoUserToggle);
-      setDemoUserActive(button.dataset.demoUserToggle,!existing?.active);render();notify("Demo user status updated.");
+      setDemoUserActive(button.dataset.demoUserToggle,!existing?.active);render();notify("User status updated.");
     }catch(e){notify(e.message,true);}return;
   }
   if(button.id==="qa-check-health"){
@@ -993,7 +992,7 @@ root.addEventListener("click", async event => {
   }
 
   if (button.id === "clearHistory") {
-    if(activeDemoUser().role!=="admin"){notify("Only the demo administrator can clear the shared browser history.",true);return;}
+    if(activeDemoUser().role!=="admin"){notify("Only Platform Admin can clear the shared browser history.",true);return;}
     if (state.running || !confirm("Permanently delete saved QA.MAFer.AI interaction history from this browser?")) return;
     void clearHistory().then(() => { state.calls = []; state.selected = null; state.evalProgress = null; clearProgress(typeof localStorage === "undefined" ? null : localStorage); render(); notify("Saved history cleared."); }).catch(e => notify(e.message, true));
     return;
@@ -1008,7 +1007,7 @@ root.addEventListener("click", async event => {
   if (button.dataset.agent !== undefined) {
     const agent = button.dataset.agent;
     const matches = scopedDemoCalls(activeDemoUser(),state.calls).filter(c=>c.agent===agent);
-    if(!matches.length){notify("This agent is not available to this demo role.",true);return;}
+    if(!matches.length){notify("This agent is not available to your workspace.",true);return;}
     // Open the most recently imported completed interaction by default.
     // A selector inside Inspection makes other interactions accessible.
     const preferred = [...matches].reverse().find(c => c.status === "COMPLETE") || matches.at(-1);
@@ -1071,10 +1070,6 @@ root.addEventListener("click", async event => {
     return;
   }
 
-  if (button.id === "demo") {
-    load(SAMPLE, "demo.txt");
-    return;
-  }
 
   if (button.id === "pasteLoad") {
     try {
@@ -1225,7 +1220,7 @@ root.addEventListener(
       if(state.running){notify("Switch personas after evaluation completes.",true);render();return;}
       try{chooseDemoUser(target.value);const user=activeDemoUser();
         state.selected=null;state.agentFilter=user.role==="agent"?user.agent:"";state.overviewAgent=user.role==="agent"?user.agent:"";
-        state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+        state.page=user.role==="admin"?"admin":"overview";
         state.resultTab="scorecard";render();
       }catch(e){notify(e.message,true);}return;
     }
@@ -1284,7 +1279,7 @@ root.addEventListener(
             rubric.criteria.some(c=>!c || typeof c.id!=="string" ||
               !Array.isArray(c.checkpoints)||c.checkpoints.length>12))
           throw Error("Not a supported QA rubric JSON");
-        if(!confirm("Replace the personal demo rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
+        if(!confirm("Replace the current working rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
         state.working.rubric=rubric;
         saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
         state.criterion=editingRubric().criteria[0]?.id||"greet7";
@@ -1304,7 +1299,7 @@ root.addEventListener(
         const normalized=normalizeReferenceLibrary(library);
         if(normalized.datasets.length!==library.datasets.length)
           throw Error("One or more library datasets have invalid structure");
-        if(!confirm("Replace the personal demo reference library with this backup? The imported data will remain in this browser."))return;
+        if(!confirm("Replace the current working reference library with this backup? The imported data will remain in this browser."))return;
         for(const d of normalized.datasets)validateScopedDataset(activeDemoUser(),state.governanceBU,d);
         state.working.references=normalized;
         saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
@@ -1464,7 +1459,7 @@ root.addEventListener("submit",event=>{
     const form=new FormData(event.target);
     try{
       const user=loginDemoEmail(form.get("email"));
-      state.page=user.role==="admin"?"admin":user.role==="cc_lead"?"portfolio":"overview";
+      state.page=user.role==="admin"?"admin":"overview";
       state.selected=null;state.agentFilter=user.role==="agent"?user.agent:"";
       state.overviewAgent=user.role==="agent"?user.agent:"";
       render();scrollPageToTop(window,document);
@@ -1476,67 +1471,34 @@ root.addEventListener("submit",event=>{
   if(activeDemoUser().role!=="admin")return;
   const fields=new FormData(event.target);
   try{createDemoUser({name:fields.get("name"),email:fields.get("email"),role:fields.get("role"),businessUnit:fields.get("businessUnit"),agent:fields.get("agent")});
-    render();notify("Demo user onboarded.");}catch(e){notify(String(e.message||e),true);}
+    render();notify("User onboarded.");}catch(e){notify(String(e.message||e),true);}
 });
 render();
 
-// First-run fixtures are explicitly synthetic. Do not replace user imports or
-// real local history. Records never leave the browser until the user evaluates.
-const DEMO_SEED_KEY = "qaai-synthetic-seed-v1";
+// Load only user-imported records. Never populate the workspace with bundled examples.
 void loadHistory().then(async calls => {
-  const restored = calls.map(c => c.status === "RUNNING" ? { ...c, status: "READY" } : c);
-  // A fresh import wins over late IndexedDB hydration.
-  state.calls = state.calls.length ? mergeImported(restored, state.calls).calls : restored;
-
-  if(!state.calls.length && localStorage.getItem(DEMO_SEED_KEY)!=="done") {
-    try {
-      const response=await fetch("/demo/share-synthetic-transcripts.json",{cache:"no-store"});
-      if(response.ok) {
-        const data=await response.json();
-        const fixtureCalls=parseExport(JSON.stringify(data),"share-synthetic-transcripts.json");
-        if(Array.isArray(fixtureCalls) && fixtureCalls.some(c=>c.status==="READY")){
-          state.calls=mergeImported(state.calls,fixtureCalls).calls;
-          await persist();
-        }
-      }
-    } catch(e) { console.warn("Synthetic demo transcripts were not seeded",String(e?.message||e)); }
-    localStorage.setItem(DEMO_SEED_KEY,"done");
+  const bundled = calls.filter(c=>
+    c.source==="synthetic_presentation" || c.sampleData===true ||
+    /^SAMPLE-SHARE-HASSAN-|^DEMO-SHARE-/i.test(String(c.id||""))
+  );
+  if(bundled.length){
+    await removeHistoryKeys(bundled.map(c=>c.key));
   }
+  const restored = calls.filter(c=>!bundled.includes(c))
+    .map(c=>c.status==="RUNNING"?{...c,status:"READY"}:c);
+  state.calls=state.calls.length?mergeImported(restored,state.calls).calls:restored;
 
-  // Populate a synthetic, previously assessed SHARE shift only when the
-  // personal browser has no completed Hassan records. Never replace real
-  // assessments; presentation fixtures are explicitly marked as examples.
-  const HASSAN_SAMPLE_KEY="qaai-synthetic-hassan-previous-shift-v1";
-  const hasActualHassan=state.calls.some(c=>c.agent==="Hassan Aly"&&c.status==="COMPLETE"&&c.source!=="synthetic_presentation");
-  if(localStorage.getItem(HASSAN_SAMPLE_KEY)!=="done"&&!hasActualHassan){
-    try{
-      const res=await fetch("/demo/hassan-previous-shift-qa.json",{cache:"no-store"});
-      if(res.ok){
-        const examples=await res.json();
-        if(Array.isArray(examples)){
-          const ids=new Set(state.calls.map(c=>String(c.id||"")));
-          const fresh=examples.filter(c=>c&&typeof c.id==="string"&&c.id.startsWith("SAMPLE-SHARE-HASSAN-")&&
-            !ids.has(c.id)&&c.source==="synthetic_presentation"&&c.agent==="Hassan Aly"&&
-            c.status==="COMPLETE"&&Number.isFinite(c.score?.score)&&Array.isArray(c.turns)&&Array.isArray(c.findings)).slice(0,3);
-          if(fresh.length){state.calls=mergeImported(state.calls,fresh).calls;await persist();}
-        }
-      }
-    }catch(e){console.warn("Sample assessed shift could not be loaded",String(e?.message||e));}
-    localStorage.setItem(HASSAN_SAMPLE_KEY,"done");
+  // Retain authorized uploaded references; discard only bundled example datasets.
+  const existing=state.references?.datasets||[];
+  const withoutBundled=existing.filter(d=>
+    !/^synthetic-/i.test(String(d.id||"")) &&
+    !/^synthetic-/i.test(String(d.name||""))
+  );
+  if(withoutBundled.length!==existing.length){
+    state.references=saveReferenceLibrary({...state.references,
+      revision:(Number(state.references.revision)||1)+1,datasets:withoutBundled});
   }
-
-  if(!state.references?.datasets?.length && localStorage.getItem("qaai-synthetic-library-seed-v1")!=="done") {
-    try {
-      const response=await fetch("/demo/share-reference-library.json",{cache:"no-store"});
-      if(response.ok){
-        const library=normalizeReferenceLibrary(await response.json());
-        if(library.datasets.length)state.references=saveReferenceLibrary(library);
-      }
-    } catch(e) { console.warn("Synthetic demo references were not seeded",String(e?.message||e)); }
-    localStorage.setItem("qaai-synthetic-library-seed-v1","done");
-  }
-
-  state.selected = state.selected && state.calls.some(c => c.key === state.selected)
-    ? state.selected : state.calls[0]?.key || null;
+  state.selected=state.selected&&state.calls.some(c=>c.key===state.selected)
+    ?state.selected:state.calls[0]?.key||null;
   render();
-}).catch(e => notify("Local history unavailable: " + e.message, true));
+}).catch(e=>notify("Local history unavailable: "+e.message,true));
