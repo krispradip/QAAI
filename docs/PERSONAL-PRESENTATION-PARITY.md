@@ -39,31 +39,43 @@ Gemini uses its existing responseSchema; OpenAI strict `json_schema` and APIM po
 
 Corporate browser localStorage and IndexedDB are separate from the personal domain. The personal app cannot access the original corporate rubric revision, reference-library datasets, or historical evaluated interactions by itself. Export the configuration from the authorized corporate browser and import it *locally* to this personal browser, subject to internal data-sharing approval. The personal backup is not a centralized synced copy of the corporate environment.
 
-## Persona-based presentation experience (2026-11-06)
+## Persona login and director presentation (2026-11-06)
 
-The personal demonstration includes a sidebar persona switcher. Switching personas is **not authentication**. These are user-interface scopes for presenting roles and cannot protect confidential data.
+The personal demo begins with a standalone **Persona** login screen. Type a demo email, leave the password blank and choose Login. The password is intentionally ignored; never type a real password. This flow is only an email-to-persona simulated browser-tab session, not authentication or server-enforced RBAC.
 
-| Demo persona | Visible screens and scope |
-| --- | --- |
-| Agent (Layla Demo) | Home and My Performance; own synthetic SHARE calls only |
-| SHARE BU Lead | Home, AI Evaluation Studio, Agents & Reports; all SHARE agent data in this browser |
-| Customer Care Lead | BU Performance portfolio, Home, Agents & Reports; SHARE browser assessments and clearly labelled synthetic non-SHARE metrics |
-| Platform Admin | Platform Administration, BU Performance, Home, Studio, Reports, AI Usage & Diagnostics and Config |
+| Persona | Email | First screen | Scope |
+| --- | --- | --- | --- |
+| SHARE Agent | `layla.agent@demo.mafer.ai` | Home | Own SHARE interactions |
+| SHARE BU Lead | `share.lead@demo.mafer.ai` | Home | All SHARE agents, QA studio, reporting |
+| Customer Care Director | `cc.director@demo.mafer.ai` | BU Performance | Cross-BU portfolio, SHARE agent drill-down |
+| Platform Admin | `admin@demo.mafer.ai` | Platform Administration | Configuration, usage, demo user lifecycle |
 
-Admin can create, deactivate and reactivate demo users in **this browser only**. The recovery demo admin cannot be deactivated. Admin's API health check calls the existing safe `/api/health` endpoint. A real enterprise implementation requires Entra authentication, server-side RBAC, governed user provisioning and database-backed audit logs.
+To change persona, **Log out** and sign in using a different demo email. The Admin can create and offboard other demo users with unique emails from Platform Administration. This data is browser-local.
 
-### First-run demo material
+### Customer Care Director BU and brand hierarchy
 
-A new browser with no saved history gets three fictional SHARE conversations and four versioned synthetic reference datasets, populated from `public/demo/`. The test interactions are READY and may be assessed live using Gemini. Synthetic non-SHARE BU quality/volume values on the Customer Care Lead dashboard are never represented as live corporate measurements. This demo provisioning does not overwrite a browser's existing rubric, library, transcripts, scores or saved history.
+| BU | Brand | Source |
+| --- | --- | --- |
+| Retail | Carrefour | Synthetic demo |
+| Entertainment | VOX | Synthetic demo |
+| Lifestyle | Crate & Barrel | Synthetic demo |
+| AMBU | MOE | Synthetic demo |
+| DBU | TAG | Synthetic demo |
+| SHARERewards | SHARE | Browser-local real assessments |
+| Fintech | MGC Classic | Synthetic demo |
 
-### Visual design
+SHARERewards metrics and agent rows are derived from the **same browser-local assessment records** as SHARE BU Lead dashboards. They do not synchronize with corporate infrastructure or any other user's browser, and unevaluated calls have no fabricated score. The other BU metrics are illustrative fixtures only.
 
-The personal demo includes the recent blue/indigo palette, cyan accents, modern card styling and animated QA.MAFer.AI sidebar identity. The animation respects reduced-motion preferences.
+### Transcript import parity
 
-### Public repository boundary
+The existing DOCX intake remains, and the paste handler also recognizes Word or Outlook HTML tables, Markdown pipe tables, tab-separated text, and column-per-line dialogue table copies. The normalizer produces the existing Genesys-compatible text contract before assessment. Speaker-labelled plain transcript paste still works.
 
-No actual corporate reference data, credentials, customer transcripts or identifiable personal information should be committed into this public source repository. Import approved copies into the local browser only when authorized. The Gemini service receives selected dialogue and reference hints during evaluation; this personal deployment is not an approved corporate security boundary.
+### Visual system
 
-### Deployment note
+The blue, indigo and cyan palette now extends to the animated Gemini evaluator, intake/upload cards, toolbar, configuration and reference library. Red remains for genuine errors and failed QA checkpoints. Logo and evaluator motion respect reduced-motion preferences.
 
-GitHub `main` now contains these features, but that does not automatically prove your Cloudflare Worker production version has redeployed. Verify the personal Cloudflare deployment separately before relying on it for a presentation.
+### Public repository and production boundaries
+
+The public GitHub repository includes synthetic sample conversations and safe reference fixtures only. Actual customer conversations and internal corporate libraries were **not** uploaded. The personal Cloudflare/Gemini deployment is not a company-approved system for processing confidential customer data. The persona login is a presentation simulation, not SSO or enterprise access control.
+
+The preserved rollback branch is `baseline/personal-gemini-pre-roles-branding-20261106`.
