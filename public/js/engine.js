@@ -470,6 +470,7 @@ export async function assess(
     rubric
   );
 
+  call.ruleAssessment = {observedScore:call.score?.observedScore ?? null,coverage:call.score?.coverage ?? null};
   onStage("rules", call);
 
   const ai = enabled.filter(c => c.checkpoints?.some(a=>a.enabled!==false));
@@ -513,6 +514,7 @@ export async function assess(
 
     const payload = await response.json()
       .catch(() => ({}));
+    if (payload.tokenUsage && typeof payload.tokenUsage === "object") call.aiTelemetry = payload.tokenUsage;
 
     if (!response.ok) {
       const err = Error(
@@ -521,6 +523,7 @@ export async function assess(
       );
 
       err.status = response.status;
+      err.providerError = payload.providerError;
       throw err;
     }
 

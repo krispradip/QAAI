@@ -13,6 +13,7 @@ import { agents } from "./engine.js";
 import { renderDashboardSummary, renderScoreExplanation } from "./summary.js";
 import { coverageBreakdown } from "./reporting.js";
 import { progressLabels } from "./progress.js";
+import { renderPresentationInspection } from "./presentation-inspection.js";
 
 export const esc = value =>
   String(value ?? "").replace(
@@ -879,7 +880,7 @@ export function agentsView(state) {
             </details>
           </div>
         ` : ""}
-        ${callDetail(inspected, state.rubric, state.resultTab || "scorecard")}
+        ${renderPresentationInspection(inspected, state.rubric, state.resultTab || "scorecard", state.findingFilter || "all", state.evidenceView || "all")}
     </section>
     ` : ""}
   `;
