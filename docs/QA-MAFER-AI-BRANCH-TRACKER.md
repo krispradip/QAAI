@@ -6,7 +6,7 @@ Last prepared: 2026-11-06 (UTC)
 
 | Environment | Repository / branch | Last verified baseline | Scope |
 | --- | --- | --- | --- |
-| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `b44e66218d010961a13248b00479abdb98be4113` (2026-11-06 05:40 UTC, *before* current PR) | Cloudflare personal environment, Gemini, presentation UI, browser-local history |
+| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `c63634d791ecdcc01182190d0663a11eb8a4c8ab` (2026-11-06, PR #24 merged) | Cloudflare personal environment, Gemini, presentation UI, browser-local history |
 | Personal enterprise migration branch | `krispradip/QAAI` / `feature/corporate-azure-apim` | `70dee87bcd9a1f543af6bb7e5b5ef77d79b035ac` (2026-10-29 07:43 UTC) | Node + Docker + EKS hosting, company APIM / GPT-4o integration |
 | Corporate GitHub | `majidalfuttaim/customer-care` (the `QAMAFerAI` application) | **Not verified through this GitHub connection** | Actual corporate source and deployment must be checked with authorized GitHub access |
 
@@ -21,9 +21,9 @@ Commit `b44e66218d01`, 2026-11-06 05:40 UTC:
 - A sidebar-level logout event handler was added so the button works outside the dynamically rendered content.
 - The Agent Home and Reports routes now receive `personaRole` correctly.
 
-## Personal main — current proposed update
+## Personal main — completed persona update (PR #23)
 
-Branch `feature/main-hassan-personas-readonly-20261106`, pending validation and merge.
+Merged as `76c3f242b1cb2c73c15f4ba4eaa18f433f76701e`.
 
 - MAF presentation persona identifiers:
   - Agent: `Hassan.Aly@maf.ae` — Hassan Aly.
@@ -35,6 +35,22 @@ Branch `feature/main-hassan-personas-readonly-20261106`, pending validation and 
 - Existing completed, non-synthetic Hassan assessments remain authoritative; the seed is never applied over them.
 - SHARE QA Lead, CC Director and Admin retain evaluation controls and the existing Gemini pipeline.
 - Updated automated checks and explicit sample-data provenance.
+
+## Personal main — completed Results & Governance parity update (PR #24)
+
+Merged as `c63634d791ecdcc01182190d0663a11eb8a4c8ab` on 2026-11-06.
+
+- Persistent, internally scrollable sidebar on desktop with mobile layout fallback.
+- A corrected combined QA status card: final scores appear only when the engine finalizes evidence, while observed-only percentages are visibly labeled non-final and the combined score remains pending.
+- Theme-based weighted progress bars across the rubric's configured groups, with separate evidence coverage and scored-criterion counts.
+- Outcome totals for **MET, MISSED, UNKNOWN, UNVERIFIED, NOT APPLICABLE** and **NOT EVALUATED** checkpoints; missing evidence is not auto-passed.
+- Existing interaction inspection tabs, AI diagnostics, request tokens and reference provenance retained.
+- SHARE QA Lead and CC Director have a **read-only Rubric & References** page; the active rubric/library revision and files/entry counts are also visible from their dashboards.
+- Platform Admin remains the configuration editor. Changes are browser-local in the personal demo and do **not** synchronize across browsers/users.
+- Invalid agent score averaging from absent final scores corrected without changing the underlying scoring engine.
+- Corporate EKS/APIM files, internal customer data and production authentication were **not** changed.
+
+Regression status before merge: Qualis stability, import regression and QA.MAFer.AI regression workflows all passed on branch commit `ef47eecd581ca67a8119d1d4420adcc1de15e215`. Post-merge GitHub Pages/CI status must be checked separately from Cloudflare Worker deployment.
 
 ## Not present on corporate branch (until separately reviewed and migrated)
 
