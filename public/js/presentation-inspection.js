@@ -1,3 +1,4 @@
+import {renderStatusTotals,renderThemeProgress,renderScoreStatus,checkpointState} from "./presentation-themes.js";
 /** Presentation-safe, Gemini-compatible interaction inspection.
  * Keeps rubric order and labels UNKNOWN distinctly from NOT EVALUATED.
  * No transcript leaves the browser through this renderer.
@@ -28,45 +29,52 @@ function allChecks(call,rubric) {
 }
 function tiles(call) {
   const rule=call.ruleAssessment || {};
+  const score=renderScoreStatus(call);
   const complete=call.status==="COMPLETE";
   const trace=call.aiTelemetry||{};
   const tokens=trace.totalTokens;
   const summary=trace.failedStage ? ("Failed at " + trace.failedStage) : complete ? "Evaluation completed" : call.status==="ERROR" ? "AI evaluation incomplete" : "Awaiting assessment";
-  return '<div class="pb-metrics">'+
-    '<article><small>COMBINED QA SCORE</small><strong>'+pct(complete?call.score?.score:null)+'</strong><span>'+ (complete?"Final assessment":"Not finalized") +'</span></article>'+
-    '<article><small>RULE-BASED ASSESSMENT</small><strong>'+pct(rule.observedScore ?? (complete?call.score?.observedScore:null))+'</strong><span>Rule-only · '+pct(rule.coverage)+' coverage</span></article>'+
-    '<article><small>AI QUALITATIVE</small><strong>'+(complete?"Evaluated":call.status==="ERROR"?"Not evaluated":"Pending")+'</strong><span>'+escapeHtml(summary)+'</span></article>'+
+  const ruleScore=rule.observedScore ?? (complete?call.score?.observedScore:null);
+  return '<div class="pb-metrics pb-results-tiles">'+
+    '<article class="pb-combined"><small>COMBINED QA SCORE</small><strong>'+escapeHtml(score.value)+'</strong><span class="pb-score-label">'+escapeHtml(score.label)+'</span><span>'+escapeHtml(score.detail)+'</span></article>'+
+    '<article><small>RULE-BASED ASSESSMENT</small><strong>'+pct(ruleScore)+'</strong><span>Rule-only observed · '+pct(rule.coverage)+' evidence coverage</span></article>'+
+    '<article><small>AI QUALITATIVE ASSESSMENT</small><strong>'+(complete?"Evaluated":call.status==="ERROR"?"Not evaluated":"Pending")+'</strong><span>'+escapeHtml(summary)+'</span></article>'+
     '</div>'+
     (call.status==="ERROR" ? '<div class="pb-alert"><b>'+escapeHtml(summary)+'</b><span>'+escapeHtml(call.error||"AI service unavailable")+'</span><small>'+ (Number.isFinite(tokens)?number(tokens)+" provider-reported tokens · ":"")+'Rule findings retained; combined score unavailable</small></div>' : '');
 }
-function checkRow(a,complete) {
+function checkRow(a,call,criterion,finding) {
   const method=a.methodKind;
-  const pending=method==="ai"&&!complete;
-  const state=pending ? "NOT EVALUATED" : String(a.state||"NOT EVALUATED");
-  const cls=state.toLowerCase().replaceAll(" ","-");
+  const state=checkpointState(a,call,criterion,finding);
+  const pending=state==="NOT_EVALUATED";
+  const cls=state.toLowerCase().replaceAll("_","-");
   const notes=a.validation?.reason ? '<p class="pb-note">Independent review: '+escapeHtml(a.validation.status)+' · '+escapeHtml(a.validation.reason)+'</p>' : "";
+  const evidence=!pending?evidenceBlock(a.evidence):"";
   return '<div class="pb-check">'+
-    '<div class="pb-check-head"><div><span class="pb-method '+method+'">'+labelOf(method)+'</span> '+escapeHtml(a.text||a.id||"Check")+'</div><b class="pb-state '+cls+'">'+escapeHtml(state)+'</b></div>'+
-    (pending?'<p class="pb-note">No AI finding or validated evidence available yet.</p>':notes+evidenceBlock(a.evidence))+
+    '<div class="pb-check-head"><div><span class="pb-method '+method+'">'+labelOf(method)+'</span> '+escapeHtml(a.text||a.id||"Check")+'</div><b class="pb-state '+cls+'">'+escapeHtml(state.replaceAll("_"," "))+'</b></div>'+
+    (pending?'<p class="pb-note">No completed AI finding or validated evidence available yet.</p>':notes+evidence+
+      (!evidence && (state==="UNVERIFIED"||state==="UNKNOWN")?
+        '<p class="pb-note">'+escapeHtml(a.reason||finding?.reason||"Supporting evidence unavailable or inconclusive")+'</p>':""))+
     '</div>';
 }
 function scorecard(call,rubric,filter) {
-  const complete=call.status==="COMPLETE";
   const sections=allChecks(call,rubric);
   let visible=0;
   const content=sections.map(({criterion,finding,checks})=>{
     const shown=checks.filter(a=>filter==="all"||a.methodKind===filter);
     if(!shown.length)return "";
     visible+=shown.length;
-    const coverage=complete && Number.isFinite(finding?.coverage) ? " · "+pct(finding.coverage)+" coverage" : "";
-    return '<section class="pb-criterion"><div class="pb-criterion-heading"><div><small>'+escapeHtml(criterion.group||"QUALITY")+'</small><h4>'+escapeHtml(criterion.name||criterion.id)+'</h4></div><span>'+shown.length+' checks'+coverage+'</span></div>'+
-      shown.map(a=>checkRow(a,complete)).join("")+'</section>';
+    const coverage=Number.isFinite(finding?.coverage) ? " · "+pct(finding.coverage)+" evidence coverage" : "";
+    const score=Number.isFinite(finding?.score) && finding?.status==="SCORED"
+      ? pct(finding.score) : "Not scored";
+    return '<section class="pb-criterion"><div class="pb-criterion-heading"><div><small>'+escapeHtml(criterion.group||"QUALITY THEME")+'</small><h4>'+escapeHtml(criterion.name||criterion.id)+'</h4></div><span>'+score+coverage+'</span></div>'+
+      shown.map(a=>checkRow(a,call,criterion,finding)).join("")+'</section>';
   }).join("");
   const bar='<div class="pb-filter" role="group" aria-label="Filter findings">'+
     [["all","All findings"],["rule","Rule-based"],["ai","AI qualitative"]].map(x=>'<button type="button" data-finding-filter="'+x[0]+'" class="'+(filter===x[0]?"active":"")+'">'+x[1]+'</button>').join("")+'</div>';
-  return '<section class="pb-scorecard"><div class="pb-heading"><h3>Assessment findings</h3><span>'+visible+' checks shown</span></div>'+bar+
+  return renderStatusTotals(call,rubric)+renderThemeProgress(call,rubric)+
+    '<section class="pb-scorecard"><div class="pb-heading"><h3>Evidence-linked assessment findings</h3><span>'+visible+' checks shown</span></div>'+bar+
     (content||'<p class="pb-empty">No checks available for the selected method.</p>')+
-    '<details class="pb-collapse"><summary>Competency overview and scoring explanation</summary><p>Scores only apply where evidence supports all required checks. An AI failure does not complete or validate a qualitative finding.</p></details>'+
+    '<details class="pb-collapse"><summary>Scoring explanation and coverage policy</summary><p>Theme scores are weighted across configured criteria, with separately reported evidence coverage. Observed scores include only supported, scored findings. Combined QA is finalized only when the assessment is complete and applicable evidence coverage is sufficient. An AI failure cannot finalize missing qualitative checks.</p></details>'+
     '</section>';
 }
 function transcript(call,scope) {
