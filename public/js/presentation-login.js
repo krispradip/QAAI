@@ -9,12 +9,12 @@ export function renderPreviewLogin(){
       '<div class="qa-login-symbol">QA<span>✦</span></div>'+
       '<div class="kicker">MAF / QUALITY INTELLIGENCE</div>'+
       '<h2>One quality platform.<br>Every service perspective.</h2>'+
-      '<p>Quality intelligence for agents, QA leaders, customer care leadership and platform operations.</p>'+
+      '<p>Quality intelligence for agents, BU leads and platform operations.</p>'+
       '<small>Quality intelligence · Gemini evaluation</small>'+
     '</div>'+
     '<div class="qa-login-panel">'+
       '<span class="qa-preview-label">EMAIL-BASED WORKSPACE ACCESS</span>'+
-      '<div class="kicker">PERSONA</div><h2>Welcome to QA.MAFer.AI</h2>'+
+      '<div class="kicker">WORKSPACE</div><h2>Welcome to QA.MAFer.AI</h2>'+
       '<p>Enter your assigned email to open your quality workspace.</p>'+
       '<form id="qa-demo-login">'+
         '<label>Email<input type="email" name="email" id="qa-login-email" '+
