@@ -1,7 +1,7 @@
 /**
  * Rubric and Reference Library visibility with leadership access to the existing editor.
  * BU Lead edits are scoped to the assigned BU; Platform Admin can select any BU.
- * The current personal Gemini prototype has only an actual SHARE baseline
+ * The current Gemini workspace has only an available SHARE baseline
  * rubric. Other business-unit rubrics are not falsely presented as ready.
  */
 import {REFERENCE_SCHEMAS} from "./reference.js";
