@@ -124,7 +124,7 @@ export function renderDemoAdmin(users,usage,calls,apiStatus="Not checked"){
   return '<div class="qa-persona-page"><div class="qa-demo-heading"><div><span class="kicker">PLATFORM GOVERNANCE</span><h2>Platform Administration</h2><p>Demo user lifecycle, system configuration, usage and operating status.</p></div><span class="qa-demo-pill">DEMO MODE</span></div>'+
   '<div class="qa-admin-kpis">'+card("Active demo users",active)+card("Completed SHARE assessments",finished)+card("Reported Gemini tokens",total.toLocaleString("en-US"))+card("Platform API",apiStatus)+'</div>'+
   '<div class="qa-admin-split"><section class="panel qa-admin-card"><h3>Access & user lifecycle</h3><p>Onboard / offboard simulated users; browser-local records only.</p>'+
-  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@demo.mafer.ai"></label>'+
+  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@example.com"></label>'+
   '<label>Role<select name="role"><option value="agent">Agent</option><option value="bu_lead">BU Lead</option><option value="cc_lead">CC Lead</option><option value="admin">Admin</option></select></label>'+
   '<label>Business unit<input name="businessUnit" value="SHARE"></label><label>Agent name / mapping<input name="agent" placeholder="For agent role"></label>'+
   '<button type="submit" class="primary">Onboard demo user</button></form>'+
