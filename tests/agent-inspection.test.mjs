@@ -50,7 +50,7 @@ test("Multiple interactions have an in-inspection selector and preserve the sele
 
 test("Inspect action routes to an agent's completed interaction and selector switches safely",()=>{
   const js=readFileSync(new URL("../public/js/app.js",import.meta.url),"utf8");
-  assert.ok(js.includes("const matches = state.calls.filter(c => c.agent === agent)"));
+  assert.ok(js.includes("scopedDemoCalls(activeDemoUser(),state.calls).filter(c=>c.agent===agent)"), "Agent inspection must use role-scoped interactions");
   assert.ok(js.includes('find(c => c.status === "COMPLETE")'));
   assert.ok(js.includes("state.selected = preferred?.key || null"));
   assert.ok(js.includes('target.id === "inspection-interaction"'));
