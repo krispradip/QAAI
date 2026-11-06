@@ -38,7 +38,8 @@ test("customer care lead accesses cross-BU demo but not admin and config",()=>{
   assert.equal(canViewPage(u,"portfolio"),true);
   assert.equal(canViewPage(u,"admin"),false);
   assert.equal(canViewPage(u,"config"),false);
-  assert.equal(canEvaluate(u),false);
+  assert.equal(canEvaluate(u),true);
+  assert.equal(canViewPage(u,"studio"),true);
   assert.equal(scopedDemoCalls(u,calls).length,3);
   const html=renderDirectorPortfolio(calls);
   assert.match(html,/Carrefour/);
