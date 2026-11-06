@@ -1063,7 +1063,7 @@ export function configuration(rubric, selected) {
             Model changes can affect evidence
             interpretation but never the scoring
             formula. Compare models against
-            human-reviewed QA samples before
+            human-reviewed QA interactions before
             using scores for formal decisions.
           </p>
 
