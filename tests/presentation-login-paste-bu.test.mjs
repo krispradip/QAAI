@@ -36,7 +36,7 @@ test("correct BU to brand hierarchy with MGC Classic",()=>{
  const expected=[["Retail","Carrefour"],["Entertainment","VOX"],["Lifestyle","Crate & Barrel"],["AMBU","MOE"],["DBU","TAG"],["SHARERewards","SHARE"],["Fintech","MGC Classic"]];
  assert.deepEqual(BU_BRANDS.map(x=>[x.bu,x.brand]),expected);
  const html=renderDirectorPortfolio([]);
- for(const [bu,brand] of expected){assert.ok(html.includes(bu),bu);assert.ok(html.includes(brand),brand);}
+ for(const [bu,brand] of expected){assert.ok(html.includes(bu),bu);assert.ok(html.includes(brand.replace(/&/g,"&amp;")),brand);}
  assert.match(html,/Synthetic demo/);
  assert.match(html,/SHARE agent performance/);
 });
