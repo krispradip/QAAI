@@ -266,3 +266,10 @@ body:has(.studio-v5) .topbar{border-color:#d9e6fa}
 
 /* Agent-only completed assessment status, no evaluation CTA. */
 .qa-agent-readonly-note{display:inline-flex;align-items:center;gap:8px;background:#e6f5ff20;border:1px solid #7accff77;color:#e0f8ff;font-size:12px;font-weight:750;border-radius:999px;padding:10px 15px;margin-top:7px;letter-spacing:.01em}
+
+/* Persona preview — clear status without credential collection. */
+.qa-preview-label{align-self:flex-start;display:inline-flex;align-items:center;letter-spacing:.08em;font-size:10px;font-weight:850;color:#355da7;background:#eaf2ff;border:1px solid #c8ddfb;border-radius:99px;padding:6px 11px;margin-bottom:14px}
+.qa-login-disclosure{background:#f4f7fc;color:#607697;border-left:3px solid #8ba9d6;padding:12px 13px;border-radius:6px;font-size:11px;line-height:1.5;margin-top:20px}
+.qa-recent-agent-results{margin-top:15px}
+.qa-recent-agent-results thead th{font-size:10px;color:#4d699e}
+.qa-recent-agent-results .qa-source.demo{background:#fff4dd;color:#896924}

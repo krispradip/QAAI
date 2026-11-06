@@ -4,17 +4,17 @@
  * authorization or SSO. Protect real records at an authenticated backend.
  */
 export const ROLE_LABELS=Object.freeze({
-  agent:"Agent",bu_lead:"SHARE BU Lead",cc_lead:"Customer Care Lead",admin:"Platform Admin"
+  agent:"Agent",bu_lead:"SHARE QA Lead",cc_lead:"CC Director",admin:"Platform Admin"
 });
 const USERS_KEY="qaai-demo-user-directory-v1";
-const ACTIVE_KEY="qaai-demo-session-v2";
+const ACTIVE_KEY="qaai-demo-session-v3";
 const session=()=>typeof sessionStorage!=="undefined"?sessionStorage:localStorage;
-const defaultEmail=name=>"demo."+String(name||"user").toLowerCase().replace(/[^a-z0-9]+/g,".").replace(/^\.|\.$/g,"")+"@demo.mafer.ai";
+const defaultEmail=name=>"unassigned."+String(name||"user").toLowerCase().replace(/[^a-z0-9]+/g,".")+"@example.invalid";
 const defaults=[
-  {id:"demo-agent-001",email:"layla.agent@demo.mafer.ai",name:"Layla Demo",role:"agent",businessUnit:"SHARE",agent:"Layla Demo",active:true,system:true},
-  {id:"demo-bulead-001",email:"share.lead@demo.mafer.ai",name:"SHARE BU Lead",role:"bu_lead",businessUnit:"SHARE",agent:"",active:true,system:true},
-  {id:"demo-cclead-001",email:"cc.director@demo.mafer.ai",name:"Customer Care Director",role:"cc_lead",businessUnit:"All",agent:"",active:true,system:true},
-  {id:"demo-admin-001",email:"admin@demo.mafer.ai",name:"Platform Administrator",role:"admin",businessUnit:"All",agent:"",active:true,system:true}
+  {id:"demo-agent-001",email:"Hassan.Aly@maf.ae",name:"Hassan Aly",role:"agent",businessUnit:"SHARE",agent:"Hassan Aly",active:true,system:true},
+  {id:"demo-bulead-001",email:"Rima.Soliman@maf.ae",name:"Rima Soliman",role:"bu_lead",businessUnit:"SHARE",agent:"",active:true,system:true},
+  {id:"demo-cclead-001",email:"Nadia.Diehl@maf.ae",name:"Nadia Diehl",role:"cc_lead",businessUnit:"All",agent:"",active:true,system:true},
+  {id:"demo-admin-001",email:"Pradip.krishnamoorthy@maf.ae",name:"Pradip Krishnamoorthy",role:"admin",businessUnit:"All",agent:"",active:true,system:true}
 ];
 const text=(x,n=100)=>String(x??"").trim().slice(0,n);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -51,10 +51,7 @@ export function demoSessionHTML(user){
     '<small>'+esc(user.email)+'</small><em>'+esc(ROLE_LABELS[user.role])+'</em>'+
     '<button type="button" id="qa-demo-logout">Log out</button></div>';
 }
-export function renderDemoLoginAccounts(){
-  return demoUsers().filter(x=>x.active&&x.system).map(x=>
-    '<button type="button" data-fill-demo-email="'+esc(x.email)+'"><b>'+esc(ROLE_LABELS[x.role])+'</b><span>'+esc(x.email)+'</span></button>').join("");
-}
+export function renderDemoLoginAccounts(){ return ""; }
 export function demoPermissions(user){
   switch(user?.role){
     case "agent":return new Set(["overview","agents"]);
@@ -88,7 +85,7 @@ export function createDemoUser(input){
   const businessUnit=role==="admin"||role==="cc_lead"?"All":text(input.businessUnit||"SHARE",60);
   if(role==="agent"&&!agent)throw Error("Map the demo agent to an agent name");
   const id="demo-custom-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
-  const email=text(input?.email||defaultEmail(name),120).toLowerCase();
+  const email=text(input?.email,120).toLowerCase();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error("Enter a valid demo email");
   if(list.some(x=>x.email?.toLowerCase()===email))throw Error("This demo email already exists");
   const user={id,email,name,role,agent,businessUnit,active:true,system:false};
@@ -127,7 +124,7 @@ export function renderDemoAdmin(users,usage,calls,apiStatus="Not checked"){
   return '<div class="qa-persona-page"><div class="qa-demo-heading"><div><span class="kicker">PLATFORM GOVERNANCE</span><h2>Platform Administration</h2><p>Demo user lifecycle, system configuration, usage and operating status.</p></div><span class="qa-demo-pill">DEMO MODE</span></div>'+
   '<div class="qa-admin-kpis">'+card("Active demo users",active)+card("Completed SHARE assessments",finished)+card("Reported Gemini tokens",total.toLocaleString("en-US"))+card("Platform API",apiStatus)+'</div>'+
   '<div class="qa-admin-split"><section class="panel qa-admin-card"><h3>Access & user lifecycle</h3><p>Onboard / offboard simulated users; browser-local records only.</p>'+
-  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@demo.mafer.ai"></label>'+
+  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@example.com"></label>'+
   '<label>Role<select name="role"><option value="agent">Agent</option><option value="bu_lead">BU Lead</option><option value="cc_lead">CC Lead</option><option value="admin">Admin</option></select></label>'+
   '<label>Business unit<input name="businessUnit" value="SHARE"></label><label>Agent name / mapping<input name="agent" placeholder="For agent role"></label>'+
   '<button type="submit" class="primary">Onboard demo user</button></form>'+

@@ -1,3 +1,4 @@
+import {renderPreviewLogin} from "./presentation-login.js";
 import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
 import {readUsage} from "./presentation-usage-ledger.js";
@@ -125,8 +126,8 @@ function render() {
     const nav=document.querySelector("#nav");if(nav){nav.innerHTML="";nav.dataset.persona="logged-out";}
     const holder=document.querySelector("#qa-demo-persona");if(holder)holder.innerHTML="";
     $("#page-title").textContent="Persona Login";
-    $("#page-sub").textContent="Select a presentation user and access their workspace.";
-    root.innerHTML='<section class="qa-login"><div class="qa-login-art"><div class="qa-login-symbol">QA<span>✦</span></div><div class="kicker">MAF / QUALITY INTELLIGENCE</div><h2>One quality platform.<br>Every service perspective.</h2><p>Explore the QA.MAFer.AI experience for agents, business-unit leaders, customer care leadership and platform administrators.</p><small>Cloudflare + Gemini · Personal presentation environment</small></div><div class="qa-login-panel"><div class="kicker">PERSONA</div><h2>Welcome to QA.MAFer.AI</h2><p>Enter the email of a demo persona to open its workspace.</p><form id="qa-demo-login"><label>Email address<input type="email" name="email" id="qa-login-email" placeholder="name@demo.mafer.ai" autocomplete="username" required></label><label>Password <span class="qa-optional">(optional)</span><input type="password" name="password" id="qa-login-password" autocomplete="off" placeholder="Leave blank for demo"></label><button type="submit" class="primary qa-login-submit">Login</button></form><div class="qa-login-options"><small>Choose a presentation persona</small>'+renderDemoLoginAccounts()+'</div><p class="qa-demo-note">Demonstration login only. Email selects a predefined persona; the password field is not checked and provides no account security. Do not enter real passwords.</p></div></section>';
+    $("#page-sub").textContent="Open your assigned quality intelligence workspace.";
+    root.innerHTML=renderPreviewLogin();
     return;
   }
   document.body?.classList?.remove?.("qa-demo-login-open");
@@ -1404,6 +1405,28 @@ void loadHistory().then(async calls => {
       }
     } catch(e) { console.warn("Synthetic demo transcripts were not seeded",String(e?.message||e)); }
     localStorage.setItem(DEMO_SEED_KEY,"done");
+  }
+
+  // Populate a synthetic, previously assessed SHARE shift only when the
+  // personal browser has no completed Hassan records. Never replace real
+  // assessments; presentation fixtures are explicitly marked as examples.
+  const HASSAN_SAMPLE_KEY="qaai-synthetic-hassan-previous-shift-v1";
+  const hasActualHassan=state.calls.some(c=>c.agent==="Hassan Aly"&&c.status==="COMPLETE"&&c.source!=="synthetic_presentation");
+  if(localStorage.getItem(HASSAN_SAMPLE_KEY)!=="done"&&!hasActualHassan){
+    try{
+      const res=await fetch("/demo/hassan-previous-shift-qa.json",{cache:"no-store"});
+      if(res.ok){
+        const examples=await res.json();
+        if(Array.isArray(examples)){
+          const ids=new Set(state.calls.map(c=>String(c.id||"")));
+          const fresh=examples.filter(c=>c&&typeof c.id==="string"&&c.id.startsWith("SAMPLE-SHARE-HASSAN-")&&
+            !ids.has(c.id)&&c.source==="synthetic_presentation"&&c.agent==="Hassan Aly"&&
+            c.status==="COMPLETE"&&Number.isFinite(c.score?.score)&&Array.isArray(c.turns)&&Array.isArray(c.findings)).slice(0,3);
+          if(fresh.length){state.calls=mergeImported(state.calls,fresh).calls;await persist();}
+        }
+      }
+    }catch(e){console.warn("Sample assessed shift could not be loaded",String(e?.message||e));}
+    localStorage.setItem(HASSAN_SAMPLE_KEY,"done");
   }
 
   if(!state.references?.datasets?.length && localStorage.getItem("qaai-synthetic-library-seed-v1")!=="done") {

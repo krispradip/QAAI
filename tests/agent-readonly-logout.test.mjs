@@ -12,9 +12,9 @@ globalThis.sessionStorage={
   getItem:k=>sessions.get(k)??null,setItem:(k,v)=>sessions.set(k,String(v)),
   removeItem:k=>sessions.delete(k),clear:()=>sessions.clear()
 };
-const completed={key:"agent-completed",id:"A-1",agent:"Layla Demo",businessUnit:"SHARE",status:"COMPLETE",
+const completed={key:"agent-completed",id:"A-1",agent:"Hassan Aly",businessUnit:"SHARE",status:"COMPLETE",
   score:{score:94,coverage:75},findings:[],turns:[],meta:{rubricRevision:1}};
-const pending={key:"agent-pending",id:"A-2",agent:"Layla Demo",businessUnit:"SHARE",status:"READY",
+const pending={key:"agent-pending",id:"A-2",agent:"Hassan Aly",businessUnit:"SHARE",status:"READY",
   score:null,findings:[],turns:[]};
 const other={key:"other",id:"B-1",agent:"Other Advisor",businessUnit:"SHARE",status:"COMPLETE",
   score:{score:61,coverage:73},findings:[],turns:[]};
@@ -25,7 +25,7 @@ test("Agent sees only completed scored interactions belonging to them",()=>{
   assert.deepEqual(scopedDemoCalls(agent,[completed,pending,other]).map(x=>x.key),["agent-completed"]);
 });
 test("Agent Home is a completed, read-only performance screen",()=>{
-  const html=overview([completed],defaultRubric(),"Layla Demo",{mode:"all"},{},
+  const html=overview([completed],defaultRubric(),"Hassan Aly",{mode:"all"},{},
     {personaRole:"agent",allowClearHistory:false});
   assert.match(html,/My quality performance/);
   assert.match(html,/My quality scorecard/);
@@ -34,13 +34,13 @@ test("Agent Home is a completed, read-only performance screen",()=>{
   assert.doesNotMatch(html,/data-page-go="studio"/);
   assert.doesNotMatch(html,/clearHistory/);
   assert.doesNotMatch(html,/overview-agent-filter/);
-  const empty=overview([],defaultRubric(),"Layla Demo",{mode:"all"},{},
+  const empty=overview([],defaultRubric(),"Hassan Aly",{mode:"all"},{},
     {personaRole:"agent",allowClearHistory:false});
   assert.match(empty,/No completed QA assessments/);
   assert.doesNotMatch(empty,/Import and evaluate calls/);
 });
 test("Agent My Performance has no evaluations, reassessment or Studio shortcut",()=>{
-  const state={calls:[completed],agentFilter:"Layla Demo",selected:null,rubric:defaultRubric(),personaRole:"agent"};
+  const state={calls:[completed],agentFilter:"Hassan Aly",selected:null,rubric:defaultRubric(),personaRole:"agent"};
   const html=agentsView(state);
   assert.match(html,/My QA performance/);
   assert.match(html,/Read only/);

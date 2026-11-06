@@ -15,8 +15,8 @@ globalThis.sessionStorage={
 };
 test("persona login uses email alone, persists only in the browser tab, and logs out",()=>{
  assert.equal(activeDemoUser(),null);
- assert.equal(loginDemoEmail("  CC.DIRECTOR@demo.mafer.ai  ").role,"cc_lead");
- assert.equal(activeDemoUser().email,"cc.director@demo.mafer.ai");
+ assert.equal(loginDemoEmail("  NADIA.DIEHL@maf.ae  ").role,"cc_lead");
+ assert.equal(activeDemoUser().email,"Nadia.Diehl@maf.ae");
  logoutDemoUser();
  assert.equal(activeDemoUser(),null);
  assert.throws(()=>loginDemoEmail("no-user@example.com"),/not registered/);

@@ -13,7 +13,7 @@ globalThis.localStorage={
   clear:()=>memory.clear()
 };
 const calls=[
-  {agent:"Layla Demo",id:"demo-a",businessUnit:"SHARE",status:"COMPLETE",score:{score:95,coverage:100}},
+  {agent:"Hassan Aly",id:"demo-a",businessUnit:"SHARE",status:"COMPLETE",score:{score:95,coverage:100}},
   {agent:"Amir Demo",id:"demo-b",businessUnit:"SHARE",status:"READY"},
   {agent:"Demo Cinema",id:"demo-c",businessUnit:"VOX Cinemas",status:"COMPLETE",score:{score:70,coverage:90}}
 ];
@@ -53,7 +53,7 @@ test("admin manages demo users, can restore users, cannot offboard recovery admi
   assert.equal(canViewPage(admin,"admin"),true);
   assert.equal(canViewPage(admin,"usage"),true);
   assert.equal(canViewPage(admin,"config"),true);
-  const user=createDemoUser({name:"Test Advisor",role:"agent",businessUnit:"SHARE",agent:"Test Advisor"});
+  const user=createDemoUser({name:"Test Advisor",email:"test.advisor@example.com",role:"agent",businessUnit:"SHARE",agent:"Test Advisor"});
   assert.ok(demoUsers().some(x=>x.id===user.id));
   assert.match(renderDemoAdmin(demoUsers(),[],calls),/Onboard demo user/);
   setDemoUserActive(user.id,false);
