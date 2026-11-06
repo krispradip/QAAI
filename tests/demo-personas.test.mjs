@@ -43,7 +43,7 @@ test("platform admin owns cross-BU reporting and the removed director account ca
  const html=renderDirectorPortfolio(calls);
  assert.match(html,/Carrefour/);
  assert.match(html,/Entertainment · VOX/);
- assert.match(html,/No records/);
+ assert.match(html,/No assessed interactions available/);
  assert.equal(shareSummary(calls.slice(0,2)).quality,95);
 });
 test("admin manages demo users, can restore users, cannot offboard recovery admin",()=>{
