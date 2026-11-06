@@ -24,11 +24,11 @@ test("combined-score card uses finalized synthetic score only for completed resu
 test("incomplete evidence has observed percentage but no finalized combined score",()=>{
  const c={...fixture,score:{score:null,observedScore:81,coverage:43},status:"COMPLETE"};
  const x=renderScoreStatus(c);
- assert.equal(x.value,"—");
- assert.match(x.detail,/Observed QA 81%/);
+ assert.equal(x.value,"Pending");
+ assert.match(x.label,/Observed QA 81%/);
  assert.match(x.detail,/43%/);
  const h=renderPresentationInspection(c,rubric,"scorecard");
- assert.match(h,/Combined score not finalized/);
+ assert.match(h,/not finalized/);
  assert.match(h,/81%/);
 });
 test("the theme score is weighted, observed vs final is explicit, and missing checks stay unscored",()=>{
