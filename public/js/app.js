@@ -1,6 +1,7 @@
 import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
 import {canConfigureBU,normalizeBU,isShareBU,publishedBUrubric,savePublishedBUrubric,loadWorkingConfig,saveWorkingConfig,publishBaselineEvent,agentBaselineNotifications,validateScopedDataset} from "./presentation-baseline.js";
 import {demoBusinessUnits} from "./presentation-portfolio.js";
+import {renderPresentationInspection} from "./presentation-inspection.js";
 import {renderPreviewLogin} from "./presentation-login.js";
 import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
@@ -75,6 +76,7 @@ const state = {
   configTab: "rubric",
   working: null,
   governanceBU: "SHARERewards",
+  previewCall: null,
 
   criterion: "greet7",
   stopAfterCurrent: false,
@@ -127,6 +129,7 @@ function openWorkingConfig(user,bu){
   state.governanceBU=target;
   state.working=loadWorkingConfig(user,target,publishedBUrubric(target,state.rubric)||state.rubric,state.references);
   state.criterion=state.working.rubric.criteria[0]?.id||"greet7";
+  state.previewCall=null;
 }
 function saveWorking(message){
   const user=activeDemoUser();if(!canConfigureBU(user,state.governanceBU))throw Error("Editing not allowed for this BU.");
@@ -207,8 +210,10 @@ function render() {
     const bar=document.createElement("section");bar.className="panel qa-working-header";
     bar.innerHTML='<div><span class="kicker">WORKING CONFIGURATION · '+state.governanceBU+'</span><h3>Rubric & Reference Library</h3><p>Edits are test drafts. Official agent scores remain on the published baseline.</p></div>'+
     '<label>Business unit <select id="qa-governance-bu">'+choices.map(b=>'<option value="'+b+'" '+(state.governanceBU===b?"selected":"")+'>'+b+'</option>').join("")+'</select></label>'+
-    '<div class="qa-working-actions"><button type="button" class="secondary" id="qa-save-working">Save Working Draft</button><button type="button" class="primary" id="qa-publish-baseline">Publish Baseline</button></div>';
+    '<div class="qa-working-actions"><button type="button" class="secondary" id="qa-save-working">Save Working Draft</button><button type="button" class="primary" id="qa-publish-baseline">Publish Baseline</button></div>'+
+    '<div class="qa-working-preview"><label>Test draft on interaction <select id="qa-preview-interaction"><option value="">Select interaction</option>'+scopedCalls.filter(c=>normalizeBU(c.businessUnit||"SHARE")===state.governanceBU).map(c=>'<option value="'+c.key+'">'+String(c.id||c.key).replace(/[&<>"]/g,"") +' · '+String(c.agent||"").replace(/[&<>"]/g,"")+'</option>').join("")+'</select></label><button type="button" class="secondary" id="qa-test-working">Run test (not official)</button></div>';
     root.prepend(bar);
+    if(state.previewCall){const preview=document.createElement("section");preview.className="qa-draft-preview";preview.innerHTML='<div class="qa-draft-notice"><b>WORKING-DRAFT PREVIEW — NOT AN OFFICIAL AGENT ASSESSMENT</b><p>Nothing from this test is added to official interaction history or agent scorecards.</p></div>'+renderPresentationInspection(state.previewCall,editingRubric());root.append(preview);}
   }
   if(state.page==="overview"&&user.role==="agent")root.innerHTML=renderAgentNotifications(user)+root.innerHTML;
   // Import corporate-format configuration backups locally without publishing
@@ -481,11 +486,12 @@ async function run(scope = "ready") {
     notify("No evaluable interaction selected. Check the import status and speaker mapping.", true);
     return;
   }
+  const withoutBaseline=target.filter(c=>!publishedBUrubric(c.businessUnit||"SHARE",state.rubric));
+  if(withoutBaseline.length){notify("Cannot run official QA: published rubric missing for "+[...new Set(withoutBaseline.map(c=>normalizeBU(c.businessUnit||"SHARE")))].join(", ")+". Publish a BU baseline first.",true);return;}
 
   /**
    * Lock the rubric during this batch.
    */
-  const snapshot = clone(state.rubric);
   const referenceSnapshot = clone(state.references);
 
   state.stopAfterCurrent = false;
@@ -528,6 +534,7 @@ async function run(scope = "ready") {
       state.selected = call.key;
       const startedAt = new Date().toISOString();
       const attemptId = "gemini-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9);
+      const snapshot = clone(publishedBUrubric(call.businessUnit||"SHARE",state.rubric));
       const activeCriteria = snapshot.criteria.filter(c => c.enabled === true);
       const contextCall = { ...call, businessUnit: call.businessUnit || "SHARE" };
       const selectedReferences = activeReferenceEntries(referenceSnapshot, contextCall, activeCriteria);
@@ -882,6 +889,25 @@ root.addEventListener("click", async event => {
     }catch{state.apiStatus="Unavailable";}
     render();return;
   }
+  if(button.id==="qa-test-working"){
+    const user=activeDemoUser();if(!canConfigureBU(user,state.governanceBU))return;
+    if(!captureCriterionDraft())return;
+    const selected=root.querySelector("#qa-preview-interaction")?.value;
+    const source=scopedDemoCalls(user,state.calls).find(c=>c.key===selected && normalizeBU(c.businessUnit||"SHARE")===state.governanceBU);
+    if(!source){notify("Choose an interaction from your selected BU.",true);return;}
+    if(state.running)return;
+    const testCall=clone(source);testCall.status="READY";testCall.findings=[];testCall.score=null;testCall.error="";
+    const snapshot=clone(editingRubric()),refs=clone(editingReferences());
+    const active=snapshot.criteria.filter(c=>c.enabled);
+    const contextual=activeReferenceEntries(refs,{...testCall,businessUnit:state.governanceBU},active);
+    state.running=true;notify("Testing working rubric. Official scores will not be modified.");
+    try{await assess(testCall,snapshot,new AbortController().signal,()=>{}, {revision:refs.revision,entries:contextual});
+      state.previewCall=testCall;
+      render();notify("Draft test complete. Official agent scorecards unchanged.");
+    }catch(e){notify("Draft test failed: "+String(e.message||e),true);}
+    finally{state.running=false;}
+    return;
+  }
   if(button.id==="qa-save-working"){
     if(!captureCriterionDraft())return;
     saveWorking("Working configuration saved. Published baseline unchanged.");return;
@@ -892,14 +918,14 @@ root.addEventListener("click", async event => {
     if(!confirm("Publish this baseline for "+state.governanceBU+"? Future official scores will use this rubric and agents will be notified."))return;
     const before=publishedBUrubric(state.governanceBU,state.rubric);
     const next=clone(editingRubric());next.revision=(Number(before?.revision)||0)+1;
-    const event=publishBaselineEvent(user,state.governanceBU,before,next);
     if(isShareBU(state.governanceBU)){state.rubric=next;saveRubric(next);}else savePublishedBUrubric(state.governanceBU,next);
     const official=state.references.datasets.filter(d=>!d.rows?.length||d.rows.some(r=>normalizeBU(r.businessUnit||"All")!==state.governanceBU));
     const scoped=editingReferences().datasets.filter(d=>d.rows?.length&&d.rows.every(r=>normalizeBU(r.businessUnit||"All")===state.governanceBU));
     const combined=new Map(official.map(x=>[x.id,x]));for(const d of scoped)combined.set(d.id,d);
     state.references=saveReferenceLibrary({...state.references,revision:state.references.revision+1,datasets:[...combined.values()]});
+    const event=publishBaselineEvent(user,state.governanceBU,before,next);
     state.working.rubric=clone(next);saveWorkingConfig(user,state.governanceBU,state.working);
-    render();notify("Baseline v"+next.revision+" published for "+state.governanceBU+". Agent notification recorded in this browser.");return;
+    render();notify("Baseline v"+next.revision+" published for "+state.governanceBU+". "+event.changes.length+" change details recorded for agents in this browser.");return;
   }
   if(button.dataset.configTab) {
     if (state.configTab === button.dataset.configTab) return;
