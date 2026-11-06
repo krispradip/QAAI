@@ -1,4 +1,4 @@
-import {activeDemoUser,chooseDemoUser,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
+import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
 import {readUsage} from "./presentation-usage-ledger.js";
 /**
@@ -38,6 +38,7 @@ import { progressLabels, readProgress, saveProgress, clearProgress } from "./pro
 import { renderUsagePage } from "./presentation-usage.js";
 import { saveUsage, exportUsageCsv } from "./presentation-usage-ledger.js";
 import { normalizeTranscriptText, readDocxTranscript } from "./presentation-docx.js";
+import { normalizeClipboardPlain,normalizeClipboardHTML } from "./presentation-paste.js";
 
 import {
   overview,
@@ -117,6 +118,18 @@ function render() {
   const previousPanel = preserveScroll && state.configTab === "rubric" ? root.querySelector(".configuration .index") : null;
   const previousPanelY = previousPanel?.scrollTop || 0;
   const user=activeDemoUser();
+  // A fresh tab begins at the simulated persona login. This is never
+  // an identity or security boundary; password is intentionally ignored.
+  if(!user){
+    document.body?.classList?.add?.("qa-demo-login-open");
+    const nav=document.querySelector("#nav");if(nav){nav.innerHTML="";nav.dataset.persona="logged-out";}
+    const holder=document.querySelector("#qa-demo-persona");if(holder)holder.innerHTML="";
+    $("#page-title").textContent="Persona Login";
+    $("#page-sub").textContent="Select a presentation user and access their workspace.";
+    root.innerHTML='<section class="qa-login"><div class="qa-login-art"><div class="qa-login-symbol">QA<span>✦</span></div><div class="kicker">MAF / QUALITY INTELLIGENCE</div><h2>One quality platform.<br>Every service perspective.</h2><p>Explore the QA.MAFer.AI experience for agents, business-unit leaders, customer care leadership and platform administrators.</p><small>Cloudflare + Gemini · Personal presentation environment</small></div><div class="qa-login-panel"><div class="kicker">PERSONA</div><h2>Welcome to QA.MAFer.AI</h2><p>Enter the email of a demo persona to open its workspace.</p><form id="qa-demo-login"><label>Email address<input type="email" name="email" id="qa-login-email" placeholder="name@demo.mafer.ai" autocomplete="username" required></label><label>Password <span class="qa-optional">(optional)</span><input type="password" name="password" id="qa-login-password" autocomplete="off" placeholder="Leave blank for demo"></label><button type="submit" class="primary qa-login-submit">Login</button></form><div class="qa-login-options"><small>Choose a presentation persona</small>'+renderDemoLoginAccounts()+'</div><p class="qa-demo-note">Demonstration login only. Email selects a predefined persona; the password field is not checked and provides no account security. Do not enter real passwords.</p></div></section>';
+    return;
+  }
+  document.body?.classList?.remove?.("qa-demo-login-open");
   if(!canViewPage(user,state.page))state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
   const scopedCalls=scopedDemoCalls(user,state.calls);
   if(state.selected&&!scopedCalls.some(c=>c.key===state.selected))state.selected=null;
@@ -125,7 +138,7 @@ function render() {
   const navHTML=demoNavigation(user);
   if(nav.dataset.persona!==user.id){nav.innerHTML=navHTML;nav.dataset.persona=user.id;}
   const holder=document.querySelector("#qa-demo-persona");
-  if(holder)holder.innerHTML=demoSelectorHTML(user);
+  if(holder)holder.innerHTML=demoSessionHTML(user);
   document.querySelector(".sidebar-bottom")?.setAttribute?.("data-demo-role",user.role);
   const [title, sub] = titles[state.page];
 
@@ -143,7 +156,7 @@ function render() {
 
   root.innerHTML =
     state.page === "usage" ? renderUsagePage()
-      : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all")
+      : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all",state.directorBrand||"all")
       : state.page === "admin" ? renderDemoAdmin(demoUsers(),readUsage(),scopedCalls,state.apiStatus||"Not checked")
       : state.page === "overview"
         ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period))
@@ -288,7 +301,7 @@ function load(text, filename) {
     return;
   }
 
-  const incoming = parseExport(normalizeTranscriptText(text), filename);
+  const incoming = parseExport(normalizeTranscriptText(normalizeClipboardPlain(text)), filename);
   // Keep the original pasted transcript visible even if mapping or evaluation is blocked.
   if (filename === "paste.txt") state.pasteDraft = text;
   const merged = mergeImported(state.calls, incoming);
@@ -772,21 +785,6 @@ document.querySelector("#nav")
  * The persona picker lives in the fixed sidebar, outside #view.
  * Demo switching is UI behavior only, never a security boundary.
  */
-document.querySelector("#qa-demo-persona")?.addEventListener("change",event=>{
-  if(event.target.id!=="qa-demo-user")return;
-  if(state.running){notify("Switch personas after evaluation completes.",true);render();return;}
-  try{
-    chooseDemoUser(event.target.value);
-    const user=activeDemoUser();
-    state.selected=null;
-    state.agentFilter=user.role==="agent"?user.agent:"";
-    state.overviewAgent=user.role==="agent"?user.agent:"";
-    state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
-    state.resultTab="scorecard";
-    render();
-    scrollPageToTop(window,document);
-  }catch(e){notify(String(e.message||e),true);}
-});
 
 /**
  * Dynamic button and row actions.
@@ -797,6 +795,18 @@ root.addEventListener("click", async event => {
   );
 
   if (!button) return;
+  if(button.dataset.fillDemoEmail){
+    const el=root.querySelector("#qa-login-email");
+    if(el)el.value=button.dataset.fillDemoEmail;
+    return;
+  }
+  if(button.id==="qa-demo-logout"){
+    if(state.running){notify("Finish the current evaluation before logging out.",true);return;}
+    logoutDemoUser();state.selected=null;state.agentFilter="";state.overviewAgent="";render();return;
+  }
+  if(button.dataset.directorShare!==undefined){
+    state.agentFilter="";state.selected=null;navigate("agents");return;
+  }
   if(button.dataset.demoUserToggle){
     if(activeDemoUser().role!=="admin")return;
     try{const existing=demoUsers().find(x=>x.id===button.dataset.demoUserToggle);
@@ -1111,7 +1121,10 @@ root.addEventListener(
       }catch(e){notify(e.message,true);}return;
     }
     if(target.id==="qa-director-bu"){
-      state.directorBU=target.value;render();return;
+      state.directorBU=target.value;state.directorBrand="all";render();return;
+    }
+    if(target.id==="qa-director-brand"){
+      state.directorBrand=target.value;render();return;
     }
     if (target.hasAttribute("data-ref-upload")) {
       const file = target.files?.[0];
@@ -1282,6 +1295,23 @@ root.addEventListener(
  */
 // QA-PASTE-AUTO | Debounce transcript paste; do not auto-run AI or disrupt typing.
 let pasteImportTimer = null;
+root.addEventListener("paste",event=>{
+  if(event.target.id!=="paste"||state.running||!canEvaluate(activeDemoUser()))return;
+  const plain=event.clipboardData?.getData("text/plain")||"";
+  const html=event.clipboardData?.getData("text/html")||"";
+  if(!plain&&!html)return;
+  const converted=normalizeClipboardHTML(plain,html);
+  // For a regular paste, let native text input and debounced parsing operate.
+  if(!html && converted===plain)return;
+  event.preventDefault();
+  state.pasteDraft=converted;
+  try{load(converted,"paste.txt");}
+  catch(e){state.importFeedback="Could not parse pasted transcript: "+String(e?.message||e);
+    const feedback=root.querySelector("#import-feedback");
+    if(feedback)feedback.textContent=state.importFeedback;
+    notify(state.importFeedback,true);}
+});
+
 root.addEventListener("input", event => {
   if (event.target.id === "paste") {
     if(!canEvaluate(activeDemoUser()))return;
@@ -1294,7 +1324,7 @@ root.addEventListener("input", event => {
     pasteImportTimer = setTimeout(() => {
       if (state.running || state.pasteDraft !== snapshot) return;
       try {
-        const parsed = parseExport(normalizeTranscriptText(snapshot), "paste.txt");
+        const parsed = parseExport(normalizeTranscriptText(normalizeClipboardPlain(snapshot)), "paste.txt");
         if (!parsed.some(c=>c.status==="READY")) return;
         load(snapshot,"paste.txt");
       } catch (err) {
@@ -1310,11 +1340,23 @@ root.addEventListener("input", event => {
 });
 
 root.addEventListener("submit",event=>{
+  if(event.target.id==="qa-demo-login"){
+    event.preventDefault();
+    const form=new FormData(event.target);
+    try{
+      const user=loginDemoEmail(form.get("email"));
+      state.page=user.role==="admin"?"admin":user.role==="cc_lead"?"portfolio":"overview";
+      state.selected=null;state.agentFilter=user.role==="agent"?user.agent:"";
+      state.overviewAgent=user.role==="agent"?user.agent:"";
+      render();scrollPageToTop(window,document);
+    }catch(e){notify(String(e?.message||e),true);}
+    return;
+  }
   if(event.target.id!=="qa-demo-user-form")return;
   event.preventDefault();
   if(activeDemoUser().role!=="admin")return;
   const fields=new FormData(event.target);
-  try{createDemoUser({name:fields.get("name"),role:fields.get("role"),businessUnit:fields.get("businessUnit"),agent:fields.get("agent")});
+  try{createDemoUser({name:fields.get("name"),email:fields.get("email"),role:fields.get("role"),businessUnit:fields.get("businessUnit"),agent:fields.get("agent")});
     render();notify("Demo user onboarded.");}catch(e){notify(String(e.message||e),true);}
 });
 render();
