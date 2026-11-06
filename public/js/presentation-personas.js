@@ -70,7 +70,8 @@ export function callBU(call){
 export function demoCallVisible(user,call){
   if(!user?.active)return false;
   if(user.role==="admin"||user.role==="cc_lead")return true;
-  if(callBU(call)!=="SHARE")return false;
+  const sameBU=(value)=>["SHARE","SHARERewards"].includes(String(value))? "SHARERewards":String(value||"SHARERewards");
+  if(sameBU(callBU(call))!==sameBU(user.businessUnit))return false;
   return user.role==="bu_lead" || (user.role==="agent" && call.agent===user.agent && call.status==="COMPLETE" && Number.isFinite(call.score?.score));
 }
 export function scopedDemoCalls(user,calls){return (calls||[]).filter(c=>demoCallVisible(user,c));}
