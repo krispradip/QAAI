@@ -38,3 +38,32 @@ Gemini uses its existing responseSchema; OpenAI strict `json_schema` and APIM po
 ## What is not automatically migrated
 
 Corporate browser localStorage and IndexedDB are separate from the personal domain. The personal app cannot access the original corporate rubric revision, reference-library datasets, or historical evaluated interactions by itself. Export the configuration from the authorized corporate browser and import it *locally* to this personal browser, subject to internal data-sharing approval. The personal backup is not a centralized synced copy of the corporate environment.
+
+## Persona-based presentation experience (2026-11-06)
+
+The personal demonstration includes a sidebar persona switcher. Switching personas is **not authentication**. These are user-interface scopes for presenting roles and cannot protect confidential data.
+
+| Demo persona | Visible screens and scope |
+| --- | --- |
+| Agent (Layla Demo) | Home and My Performance; own synthetic SHARE calls only |
+| SHARE BU Lead | Home, AI Evaluation Studio, Agents & Reports; all SHARE agent data in this browser |
+| Customer Care Lead | BU Performance portfolio, Home, Agents & Reports; SHARE browser assessments and clearly labelled synthetic non-SHARE metrics |
+| Platform Admin | Platform Administration, BU Performance, Home, Studio, Reports, AI Usage & Diagnostics and Config |
+
+Admin can create, deactivate and reactivate demo users in **this browser only**. The recovery demo admin cannot be deactivated. Admin's API health check calls the existing safe `/api/health` endpoint. A real enterprise implementation requires Entra authentication, server-side RBAC, governed user provisioning and database-backed audit logs.
+
+### First-run demo material
+
+A new browser with no saved history gets three fictional SHARE conversations and four versioned synthetic reference datasets, populated from `public/demo/`. The test interactions are READY and may be assessed live using Gemini. Synthetic non-SHARE BU quality/volume values on the Customer Care Lead dashboard are never represented as live corporate measurements. This demo provisioning does not overwrite a browser's existing rubric, library, transcripts, scores or saved history.
+
+### Visual design
+
+The personal demo includes the recent blue/indigo palette, cyan accents, modern card styling and animated QA.MAFer.AI sidebar identity. The animation respects reduced-motion preferences.
+
+### Public repository boundary
+
+No actual corporate reference data, credentials, customer transcripts or identifiable personal information should be committed into this public source repository. Import approved copies into the local browser only when authorized. The Gemini service receives selected dialogue and reference hints during evaluation; this personal deployment is not an approved corporate security boundary.
+
+### Deployment note
+
+GitHub `main` now contains these features, but that does not automatically prove your Cloudflare Worker production version has redeployed. Verify the personal Cloudflare deployment separately before relying on it for a presentation.
