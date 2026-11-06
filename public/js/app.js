@@ -173,7 +173,7 @@ function render() {
             );
 
   if((state.page==="overview"&&user.role==="bu_lead") || (state.page==="portfolio"&&user.role==="cc_lead") || (state.page==="admin"&&user.role==="admin")) {
-    root.insertAdjacentHTML("afterbegin",renderQualityContextStrip(state.rubric,state.references,user.role));
+    root.innerHTML=renderQualityContextStrip(state.rubric,state.references,user.role)+root.innerHTML;
   }
 
   // Import corporate-format configuration backups locally without publishing
