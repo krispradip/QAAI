@@ -1,0 +1,88 @@
+/* QA.MAFer.AI presentation design v3 — modern corporate-inspired demo styling.
+   Blue/indigo, cyan highlights, animated logo and persona management.
+   Respects reduced-motion preferences. */
+:root{
+ --navy:#0d1b34;--teal:#445ddd;--border:#dbe4f6;--muted:#7b8eab;
+ color:#183356;background:#f1f5fc;
+}
+body{background:linear-gradient(155deg,#edf6ff 0%,#f7f9ff 49%,#eef1fd 100%);color:#1c3254}
+.sidebar{background:linear-gradient(175deg,#071327 0%,#102442 55%,#252c65 100%);color:#dbe9ff;box-shadow:9px 0 32px #112c5312;padding:22px 14px}
+.sidebar .brand{margin:4px 4px 22px;position:relative}
+.sidebar .brand strong{font-size:17px;color:#f7faff;letter-spacing:-.4px;position:relative;text-shadow:0 0 12px #48bdf433}
+.sidebar .brand strong span{color:#8ce6fb}
+.sidebar .brand strong:after{content:"";position:absolute;inset:-4px -2px;background:linear-gradient(108deg,transparent 18%,#ffffff00 38%,#ffffffaa 50%,#ffffff00 62%,transparent 80%);animation:qa-brand-shine 2.45s ease-in-out infinite;pointer-events:none;mix-blend-mode:screen}
+.sidebar .brand-mark{background:linear-gradient(135deg,#25e3e8 0%,#478fe9 42%,#6d58e4 90%);box-shadow:0 0 22px #54c0fa7c;animation:qa-brand-float 2.2s ease-in-out infinite;border-radius:13px;isolation:isolate}
+.sidebar .brand-mark:before{content:"";position:absolute;inset:-5px;border:1px solid #65d6fb77;border-radius:18px;animation:qa-brand-pulse 1.9s ease-out infinite}
+.sidebar .brand-mark span{color:#e0f9ff;animation:qa-brand-spark 1.3s ease-in-out infinite}
+.sidebar .brand small{color:#87afda;font-weight:800;letter-spacing:1.3px}
+.sidebar .nav-caption{color:#86a7cf;margin-bottom:8px}
+#nav{display:flex;flex-direction:column;gap:5px}
+#nav button{background:transparent;color:#c7d7f4;border:1px solid transparent;border-radius:9px;padding:12px 11px;margin:0;display:flex;gap:10px;align-items:center;font-size:12px}
+#nav button span{color:#8fbcff;font-size:16px}
+#nav button:hover,#nav button.active{background:linear-gradient(98deg,#3349b8,#19486488);color:white;border-color:#4784f52b}
+#nav button.active{border-left:3px solid #35deef}
+.sidebar-bottom{color:#a9c2e8;border-color:#405979;padding-top:14px}
+.sidebar-bottom small{color:#789ac9}
+.live-dot{background:#28d5cc;box-shadow:0 0 11px #38e3d0}
+.main{max-width:none;padding:30px clamp(18px,2.7vw,40px)}
+.topbar{border-bottom:1px solid #d8e3f7;padding-bottom:19px;margin-bottom:20px}
+.topbar h1{color:#102c50;font-weight:850}
+.eyebrow,.kicker{color:#4c66c6}
+#page-sub,.muted{color:#7e8daa}
+.panel,.metric,.qa-portfolio-metric,.qa-admin-kpi{border-color:#dfe7f7;box-shadow:0 10px 32px #233b7010}
+.hero{background:radial-gradient(circle at 72% 30%,#2a4db1,#162b59 40%,#0b213b 100%);border:1px solid #426abd80}
+.hero .eyebrow{color:#82e6fa}.hero em{color:#6bdceb}.hero p{color:#bfd2f4}
+.primary,.primary.pale{background:linear-gradient(125deg,#505cdd,#527be8);color:white;border-color:#6d8cef;box-shadow:0 6px 16px #586ce22a}
+.primary:hover:not(:disabled){background:linear-gradient(125deg,#394fcd,#388ce9)}
+.secondary{background:#f7faff;color:#355490;border-color:#d6e3fa}
+.link{color:#425bd1}
+thead th{background:#f3f6fd;color:#7186b1}
+td b,td strong{color:#2a4575}
+.status-complete{background:#e6f8f2;color:#107b65}
+.progress{background:#e2e9fb}.progress div{background:linear-gradient(95deg,#4d61df,#2dc7da)}
+.pb-criterion,.pb-panel,.pb-transcript{border-color:#dbe6f8}
+.pb-tabs button.active,.pb-filter button.active{background:#e7efff;color:#3459c0}
+.pb-metrics article,.pb-usage-metrics article{background:#f7faff}
+.qa-persona-switch{margin:0 4px 20px;padding:12px 10px;border:1px solid #43608980;border-radius:12px;background:#132c50aa}
+.qa-persona-switch label{display:block;font-size:9px;letter-spacing:1.5px;font-weight:900;color:#82d6ee;margin-bottom:9px}
+.qa-persona-switch select{width:100%;min-width:0;display:block;border:1px solid #5178ab;background:#142b4d;color:#f5fbff;padding:9px 6px;border-radius:8px;font-size:11px}
+.qa-persona-switch small{display:block;font-size:9px;color:#a4b8d6;margin-top:7px;line-height:1.5}
+.qa-demo-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:17px}
+.qa-demo-heading h2{font-size:26px;margin:6px 0;color:#142f59}
+.qa-demo-heading p{font-size:12px;margin:0;color:#6d82a6}
+.qa-demo-pill{font-size:10px;color:#3055a9;background:#e7edff;border:1px solid #cddcff;padding:8px 11px;border-radius:20px;font-weight:900;letter-spacing:.04em}
+.qa-portfolio-filter{display:flex;align-items:end;gap:18px;flex-wrap:wrap;background:#fff;border:1px solid #dce5f7;border-radius:12px;padding:13px 17px;margin-bottom:15px}
+.qa-portfolio-filter label,.qa-admin-form label{display:flex;flex-direction:column;font-size:11px;font-weight:800;gap:6px;color:#415c8c}
+.qa-portfolio-filter select,.qa-admin-form input,.qa-admin-form select{background:#fff;color:#234167;border:1px solid #d4e0f5;padding:10px;border-radius:8px;min-width:190px}
+.qa-portfolio-filter p{font-size:11px;color:#7990ac;margin:0 0 4px}
+.qa-portfolio-metrics,.qa-admin-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
+.qa-portfolio-metric,.qa-admin-kpi{border:1px solid #dbe6f5;border-radius:13px;background:#fff;padding:20px;min-width:0}
+.qa-portfolio-metric small,.qa-admin-kpi small{display:block;color:#5d72a1;font-size:10px;font-weight:900;letter-spacing:.06em}
+.qa-portfolio-metric strong,.qa-admin-kpi strong{font-size:26px;display:block;color:#224b88;margin:8px 0;overflow-wrap:anywhere}
+.qa-portfolio-metric span{display:block;color:#778baa;font-size:11px}
+.qa-portfolio-grid,.qa-admin-split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qa-bu-bar{margin:13px 0}.qa-bu-bar-head{display:flex;justify-content:space-between;font-size:12px;color:#28436e}
+.qa-bu-track{height:9px;background:#e4ebfa;border-radius:20px;overflow:hidden;margin:6px 0}
+.qa-bu-track i{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#5865e9,#27becb)}
+.qa-bu-bar small{font-size:10px;color:#8d9fb5}.qa-source{display:inline-block;border-radius:20px;font-size:10px;padding:5px 8px;white-space:nowrap}
+.qa-source.demo{background:#fff3de;color:#866b30}.qa-source.actual{background:#e3f7f1;color:#1e7b6a}
+.qa-director-insight{border:1px solid #e0e9f8;border-radius:10px;padding:13px;margin:11px 0;display:flex;flex-direction:column;gap:7px;font-size:12px}
+.qa-director-insight span{color:#798aa9}
+.qa-demo-note{font-size:11px;line-height:1.7;padding:13px;color:#566b91;background:#f1f6ff;border-radius:9px;border:1px solid #deebff}
+.qa-admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 20px}
+.qa-admin-form .primary{grid-column:span 2;justify-self:start}
+.qa-admin-card h3{margin:0 0 7px;color:#284b85}.qa-admin-card p{font-size:12px;color:#788ba9}
+.qa-admin-actions{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:20px 0}
+.qa-admin-actions .secondary{text-align:left;white-space:normal}
+.qa-admin-card .table-scroll{max-height:385px}
+.qa-persona-page td small{color:#7a8da7;font-size:10px}
+.qa-local-config-restore{border:1px solid #cddbf4;background:#f7fbff;border-radius:11px;padding:13px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:15px}
+.qa-local-config-restore small{display:block;max-width:680px;margin-top:5px;color:#8190ad;font-size:11px}
+.qa-local-file-btn{display:inline-flex;align-items:center;cursor:pointer}
+@keyframes qa-brand-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+@keyframes qa-brand-pulse{0%{transform:scale(.92);opacity:1}100%{transform:scale(1.25);opacity:0}}
+@keyframes qa-brand-spark{0%,100%{transform:scale(.7) rotate(0deg);opacity:.6}50%{transform:scale(1.4) rotate(90deg);opacity:1}}
+@keyframes qa-brand-shine{0%,12%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
+@media(prefers-reduced-motion:reduce){.sidebar .brand-mark,.sidebar .brand-mark:before,.sidebar .brand-mark span,.sidebar .brand strong:after{animation:none!important}}
+@media(max-width:1050px){.qa-portfolio-metrics,.qa-admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qa-portfolio-grid,.qa-admin-split{grid-template-columns:1fr}}
+@media(max-width:700px){.qa-portfolio-metrics,.qa-admin-kpis{grid-template-columns:1fr 1fr}.qa-admin-form{grid-template-columns:1fr}.qa-admin-form .primary{grid-column:span 1}}
