@@ -58,13 +58,13 @@ export function demoPermissions(user){
   switch(user?.role){
     case "agent":return new Set(["overview","agents"]);
     case "bu_lead":return new Set(["overview","studio","agents"]);
-    case "cc_lead":return new Set(["portfolio","overview","agents"]);
+    case "cc_lead":return new Set(["portfolio","overview","agents","studio"]);
     case "admin":return new Set(["admin","portfolio","overview","studio","agents","usage","config"]);
     default:return new Set();
   }
 }
 export function canViewPage(user,page){return demoPermissions(user).has(page);}
-export function canEvaluate(user){return user?.role==="bu_lead"||user?.role==="admin";}
+export function canEvaluate(user){return ["bu_lead","cc_lead","admin"].includes(user?.role); }
 export function callBU(call){
   return text(call?.businessUnit||call?.bu||call?.meta?.businessUnit||
     (/\bshare\b/i.test(call?.queue||"")?"SHARE":"SHARE"),60)||"SHARE";
@@ -126,7 +126,7 @@ export function renderDemoAdmin(users,usage,calls,apiStatus="Not checked"){
   return '<div class="qa-persona-page"><div class="qa-demo-heading"><div><span class="kicker">PLATFORM GOVERNANCE</span><h2>Platform Administration</h2><p>Demo user lifecycle, system configuration, usage and operating status.</p></div><span class="qa-demo-pill">DEMO MODE</span></div>'+
   '<div class="qa-admin-kpis">'+card("Active demo users",active)+card("Completed SHARE assessments",finished)+card("Reported Gemini tokens",total.toLocaleString("en-US"))+card("Platform API",apiStatus)+'</div>'+
   '<div class="qa-admin-split"><section class="panel qa-admin-card"><h3>Access & user lifecycle</h3><p>Onboard / offboard simulated users; browser-local records only.</p>'+
-  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@demo.mafer.ai"></label>'+
+  '<form id="qa-demo-user-form" class="qa-admin-form"><label>Display name<input name="name" maxlength="80" required placeholder="Demo user"></label><label>Email<input name="email" type="email" required placeholder="name@maf.ae"></label>'+
   '<label>Role<select name="role"><option value="agent">Agent</option><option value="bu_lead">BU Lead</option><option value="cc_lead">CC Lead</option><option value="admin">Admin</option></select></label>'+
   '<label>Business unit<input name="businessUnit" value="SHARE"></label><label>Agent name / mapping<input name="agent" placeholder="For agent role"></label>'+
   '<button type="submit" class="primary">Onboard demo user</button></form>'+
@@ -138,5 +138,5 @@ export function renderDemoAdmin(users,usage,calls,apiStatus="Not checked"){
   '<button class="secondary" type="button" data-page-go="config">QA Configurator & libraries</button>'+
   '<button class="secondary" type="button" data-page-go="usage">Token usage & rate limits</button>'+
   '<button class="secondary" type="button" data-page-go="studio">Evaluation Studio</button></div>'+
-  '<p class="qa-demo-note">The persona switcher is a product demonstration, not SSO, identity enforcement or secure RBAC. Enterprise administration requires authenticated APIs, server-enforced permissions and audit logs.</p></section></div></div>';
+  '<p class="qa-demo-note">This email-based preview is a presentation simulation, not SSO, identity enforcement or secure RBAC. Enterprise administration requires authenticated APIs, server-enforced permissions and audit logs.</p></section></div></div>';
 }
