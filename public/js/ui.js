@@ -887,7 +887,7 @@ export function agentsView(state) {
             </details>
           </div>
         ` : ""}
-        ${renderPresentationInspection(inspected, state.rubric, state.resultTab || "scorecard", state.findingFilter || "all", state.evidenceView || "all")}
+        ${renderPresentationInspection(inspected, state.rubric, state.resultTab || "scorecard", state.findingFilter || "all", state.evidenceView || "all", {allowDiagnostics:state.personaRole==="admin"})}
     </section>
     ` : ""}
   `;
