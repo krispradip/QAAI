@@ -360,16 +360,14 @@ export function studio(state) {
               <div class="intake-tile-heading"><span class="intake-option-icon" aria-hidden="true">♫</span><strong>Audio file</strong></div>
               <div class="upload audio-coming-soon">
                 <span>♫</span><b>Choose audio file</b>
-                <small>Not yet enabled in this prototype.</small>
+                <small>Audio evaluation is not enabled.</small>
               </div>
             </div>
             </div>
           </div>
 
           <div class="footnote">
-            PII masking is basic and does not replace
-            enterprise DLP. Use synthetic or approved
-            anonymised files for the demo.
+            Basic masking does not replace enterprise DLP. Upload only approved, de-identified customer interaction files.
           </div>
         </section>
 
@@ -458,7 +456,7 @@ export function studio(state) {
               ${calls.find(c => c.key === selected)?.status === "COMPLETE" ? "↻ Re-evaluate selected" : "Evaluate selected"}
             </button>
             <button class="secondary" id="clearBatch" ${!running && calls.length ? "" : "disabled"}>♧ Remove all batch</button>
-            <button class="secondary" id="demo" ${running ? "disabled" : ""}>▤ Load sample</button>
+            
           </div>
         </div>
         <div class="studio-v5-action-group studio-v5-exports">
