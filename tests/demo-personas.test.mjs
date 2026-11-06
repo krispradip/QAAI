@@ -53,7 +53,7 @@ test("admin manages demo users, can restore users, cannot offboard recovery admi
   assert.equal(canViewPage(admin,"admin"),true);
   assert.equal(canViewPage(admin,"usage"),true);
   assert.equal(canViewPage(admin,"config"),true);
-  const user=createDemoUser({name:"Test Advisor",role:"agent",businessUnit:"SHARE",agent:"Test Advisor"});
+  const user=createDemoUser({name:"Test Advisor",email:"test.advisor@example.com",role:"agent",businessUnit:"SHARE",agent:"Test Advisor"});
   assert.ok(demoUsers().some(x=>x.id===user.id));
   assert.match(renderDemoAdmin(demoUsers(),[],calls),/Onboard demo user/);
   setDemoUserActive(user.id,false);
