@@ -1,3 +1,4 @@
+import {renderAgentRecentAssessments} from "./presentation-agent-home.js";
 /**
  * QA-UI-001 | Qualis v2.2.0
  *
@@ -112,7 +113,8 @@ function tableAgents(calls) {
  * QA-UI-OVERVIEW
  * Executive contact-centre quality view.
  */
-export function overview(calls, rubric, selectedAgent = "", period = { mode:"all" }, periodInfo = {}) {
+export function overview(calls, rubric, selectedAgent = "", period = { mode:"all" }, periodInfo = {}, viewRole = "bu_lead") {
+  const agentView=viewRole==="agent";
   const completed = calls.filter(c =>
     c.status === "COMPLETE" &&
     c.score?.score !== null
@@ -155,27 +157,23 @@ export function overview(calls, rubric, selectedAgent = "", period = { mode:"all
         </div>
 
         <h2>
-          Every conversation.
+          ${agentView?"Your conversations.":"Every conversation."}
           <br>
-          <em>A clearer quality picture.</em>
+          <em>${agentView?"Your quality progress.":"A clearer quality picture."}</em>
         </h2>
-
-        <p>
-          Assess complete Genesys exports, trace every
-          scored observation to dialogue, and help agents
-          improve with defensible evidence.
-        </p>
-
-        <button class="primary pale"
-          data-page-go="studio">
-          ✦ Open Evaluation Studio ↗
-        </button>
+        <p>${agentView
+          ? "Your completed QA results from previous shifts, including scores, evidence and coaching opportunities."
+          : "Assess complete interaction exports, trace scored observations to dialogue, and improve with evidence."}</p>
+        ${agentView
+          ? '<button class="primary pale" data-page-go="agents">View My Performance →</button>'
+          : '<button class="primary pale" data-page-go="studio">✦ Open Evaluation Studio ↗</button>'}
       </div>
 
     </section>
 
-    <section class="panel"><div class="panel-heading"><div><span class="kicker">REPORTING PERIOD</span><h3>Interaction date</h3></div><button id="clearHistory" class="secondary">Clear saved history</button></div><div class="filters"><select id="report-period"><option value="all" ${period.mode==="all"?"selected":""}>All time</option><option value="last7" ${period.mode==="last7"?"selected":""}>Last 7 days</option><option value="last30" ${period.mode==="last30"?"selected":""}>Last 30 days</option><option value="month" ${period.mode==="month"?"selected":""}>This month</option><option value="custom" ${period.mode==="custom"?"selected":""}>Custom date range</option></select>${period.mode==="custom"?`<label>From <input type="date" id="period-from" value="${esc(period.from||"")}"></label><label>To <input type="date" id="period-to" value="${esc(period.to||"")}"></label>`:""}</div><p class="muted">Uses interaction dates, not evaluation dates. ${periodInfo.undatedExcluded||0} undated records excluded. ${esc(periodInfo.warning||"")}</p></section>
+    <section class="panel"><div class="panel-heading"><div><span class="kicker">REPORTING PERIOD</span><h3>Interaction date</h3></div>${viewRole==="admin"?'<button id="clearHistory" class="secondary">Clear saved history</button>':""}</div><div class="filters"><select id="report-period"><option value="all" ${period.mode==="all"?"selected":""}>All time</option><option value="last7" ${period.mode==="last7"?"selected":""}>Last 7 days</option><option value="last30" ${period.mode==="last30"?"selected":""}>Last 30 days</option><option value="month" ${period.mode==="month"?"selected":""}>This month</option><option value="custom" ${period.mode==="custom"?"selected":""}>Custom date range</option></select>${period.mode==="custom"?`<label>From <input type="date" id="period-from" value="${esc(period.from||"")}"></label><label>To <input type="date" id="period-to" value="${esc(period.to||"")}"></label>`:""}</div><p class="muted">Uses interaction dates, not evaluation dates. ${periodInfo.undatedExcluded||0} undated records excluded. ${esc(periodInfo.warning||"")}</p></section>
     ${renderDashboardSummary(calls, selectedAgent)}
+    ${agentView?renderAgentRecentAssessments(calls,selectedAgent):""}
 
     <section class="panel">
       <div class="panel-heading">
@@ -186,7 +184,7 @@ export function overview(calls, rubric, selectedAgent = "", period = { mode:"all
 
         <button class="link"
           data-page-go="agents">
-          View all agents →
+          ${agentView?"View my performance →":"View all agents →"}
         </button>
       </div>
 
@@ -223,7 +221,7 @@ export function overview(calls, rubric, selectedAgent = "", period = { mode:"all
         : `
           <div class="empty">
             No scored coaching opportunities yet.
-            Evaluate an interaction to populate this area.
+            ${agentView?"Coaching insights will appear once your QA team completes an assessment.":"Evaluate an interaction to populate this area."}
           </div>
         `
       }
@@ -822,6 +820,7 @@ export function callDetail(call, rubric, tab = "scorecard") {
  */
 export function agentsView(state) {
   const { calls, agentFilter } = state;
+  const readonly=state.viewerRole==="agent";
   const inspected = calls.find(c => c.key === state.selected && (!agentFilter || c.agent === agentFilter));
   const agentCalls = inspected ? calls.filter(c => c.agent === inspected.agent) : [];
 
@@ -835,8 +834,8 @@ export function agentsView(state) {
           <h3>Agent QA overview</h3>
         </div>
         <div class="toolbar">
-          <button class="secondary" data-page-go="studio">+ Evaluate interactions</button>
-          ${agentFilter ? `<button class="secondary" id="rerunAgent" ${state.running || !calls.some(c=>c.agent===agentFilter && ["READY","ERROR","COMPLETE"].includes(c.status))?"disabled":""}>↻ Reassess this agent</button>` : ""}
+          ${readonly?"":'<button class="secondary" data-page-go="studio">+ Evaluate interactions</button>'}
+          ${!readonly && agentFilter ? `<button class="secondary" id="rerunAgent" ${state.running || !calls.some(c=>c.agent===agentFilter && ["READY","ERROR","COMPLETE"].includes(c.status))?"disabled":""}>↻ Reassess this agent</button>` : ""}
         </div>
       </div>
       ${tableAgents(calls)}
