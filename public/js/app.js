@@ -147,7 +147,7 @@ function render() {
   const previousPanel = preserveScroll && state.configTab === "rubric" ? root.querySelector(".configuration .index") : null;
   const previousPanelY = previousPanel?.scrollTop || 0;
   const user=activeDemoUser();
-  // A fresh tab begins at the simulated persona login. This is never
+  // A fresh tab begins at browser-local workspace selection. This is never
   // an identity or security boundary; password is intentionally ignored.
   if(!user){
     document.body?.classList?.add?.("qa-demo-login-open");
@@ -221,7 +221,7 @@ function render() {
     const bar=document.createElement("div");
     bar.className="qa-local-config-restore";
     bar.innerHTML=state.configTab==="rubric"
-      ? '<div><b>Load QA rubric backup</b><small>Import a saved rubric JSON. Its GPT-4o model selection will be mapped to Gemini for this personal demo. Existing rubric settings are replaced.</small></div><label class="secondary qa-local-file-btn">Import rubric JSON<input type="file" id="qa-import-rubric" accept=".json,application/json" hidden></label>'
+      ? '<div><b>Load QA rubric backup</b><small>Import a saved rubric JSON. Its GPT-4o model selection will be mapped to Gemini for this personal workspace. Existing rubric settings are replaced.</small></div><label class="secondary qa-local-file-btn">Import rubric JSON<input type="file" id="qa-import-rubric" accept=".json,application/json" hidden></label>'
       : '<div><b>Load reference library backup</b><small>Import your versioned library JSON into this browser only. Files are not committed to GitHub or uploaded to Cloudflare until selected entries are sent for a Gemini assessment.</small></div><label class="secondary qa-local-file-btn">Import library JSON<input type="file" id="qa-import-reference-library" accept=".json,application/json" hidden></label>';
     root.prepend(bar);
   }
