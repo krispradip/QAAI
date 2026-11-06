@@ -138,7 +138,7 @@ export function renderScoreStatus(call){
   detail:Number.isFinite(score.observedScore)?"Observed "+pct(score.observedScore)+" · "+pct(score.coverage)+" evidence coverage":"No finalized score"};
  if(Number.isFinite(score.score))return {value:pct(score.score),label:"Final combined QA score",
   detail:"Evidence coverage "+pct(score.coverage)};
- if(Number.isFinite(score.observedScore))return {value:"—",label:"Combined score not finalized",
-  detail:"Observed QA "+pct(score.observedScore)+" · "+pct(score.coverage)+" coverage; unresolved evidence prevents finalization"};
+ if(Number.isFinite(score.observedScore))return {value:"Pending",label:"Observed QA "+pct(score.observedScore)+" · not finalized",
+  detail:pct(score.coverage)+" evidence coverage; unresolved checks prevent a final combined QA score"};
  return {value:"—",label:"No verified combined score",detail:"Evidence coverage "+pct(score.coverage)+"; no supported scored criteria"};
 }
