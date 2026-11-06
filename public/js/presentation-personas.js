@@ -101,7 +101,7 @@ export function setDemoUserActive(id,active){
 }
 export function demoSelectorHTML(user){
   return '<div class="qa-persona-switch"><label for="qa-demo-user">WORKSPACE USER</label>'+
-    '<select id="qa-demo-user" aria-label="Switch demonstration persona">'+
+    '<select id="qa-demo-user" aria-label="Switch workspace user">'+
     demoUsers().filter(x=>x.active).map(x=>'<option value="'+esc(x.id)+'" '+(user.id===x.id?'selected':'')+'>'+esc(x.name)+' · '+esc(ROLE_LABELS[x.role])+'</option>').join("")+
     '</select><small>Workspace access is local to this browser</small></div>';
 }
