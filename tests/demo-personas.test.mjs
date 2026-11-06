@@ -68,11 +68,11 @@ test("demo navigation hides disallowed pages",()=>{
   assert.doesNotMatch(html,/Config/);
 });
 test("synthetic fixture data is populated and explicitly marked as demo",async()=>{
-  const content=await readFile(new URL("../public/demo/share-synthetic-transcripts.json",import.meta.url),"utf8");
+  const content=await readFile(new URL("./fixtures/qa-transcripts.json",import.meta.url),"utf8");
   const rows=JSON.parse(content);
   assert.ok(rows.length>=3);
   assert.ok(rows.every(x=>x.id.startsWith("DEMO-")&&x.turns.length>=5));
-  const ref=JSON.parse(await readFile(new URL("../public/demo/share-reference-library.json",import.meta.url),"utf8"));
+  const ref=JSON.parse(await readFile(new URL("./fixtures/qa-reference-library.json",import.meta.url),"utf8"));
   assert.equal(ref.datasets.length,4);
   assert.ok(ref.datasets.every(x=>x.name.includes("synthetic")&&x.rows.length));
 });
