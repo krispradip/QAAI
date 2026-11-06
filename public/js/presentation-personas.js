@@ -55,8 +55,8 @@ export function renderDemoLoginAccounts(){ return ""; }
 export function demoPermissions(user){
   switch(user?.role){
     case "agent":return new Set(["overview","agents"]);
-    case "bu_lead":return new Set(["overview","studio","agents","standards"]);
-    case "cc_lead":return new Set(["portfolio","overview","studio","agents","standards"]);
+    case "bu_lead":return new Set(["overview","studio","agents","standards","config"]);
+    case "cc_lead":return new Set(["portfolio","overview","studio","agents","standards","config"]);
     case "admin":return new Set(["admin","portfolio","overview","studio","agents","standards","usage","config"]);
     default:return new Set();
   }
