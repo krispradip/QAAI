@@ -1299,13 +1299,40 @@ root.addEventListener("submit",event=>{
 });
 render();
 
-// Load browser-local results after refresh.
-void loadHistory().then(calls => {
+// First-run fixtures are explicitly synthetic. Do not replace user imports or
+// real local history. Records never leave the browser until the user evaluates.
+const DEMO_SEED_KEY = "qaai-synthetic-seed-v1";
+void loadHistory().then(async calls => {
   const restored = calls.map(c => c.status === "RUNNING" ? { ...c, status: "READY" } : c);
-  // Never overwrite a fresh upload if IndexedDB hydration finishes later.
-  // A fresh import is authoritative; late IndexedDB hydration must never
-  // replace its selected interaction, status, or transcript.
+  // A fresh import wins over late IndexedDB hydration.
   state.calls = state.calls.length ? mergeImported(restored, state.calls).calls : restored;
+
+  if(!state.calls.length && localStorage.getItem(DEMO_SEED_KEY)!=="done") {
+    try {
+      const response=await fetch("/demo/share-synthetic-transcripts.json",{cache:"no-store"});
+      if(response.ok) {
+        const data=await response.json();
+        const fixtureCalls=parseExport(JSON.stringify(data),"share-synthetic-transcripts.json");
+        if(Array.isArray(fixtureCalls) && fixtureCalls.some(c=>c.status==="READY")){
+          state.calls=mergeImported(state.calls,fixtureCalls).calls;
+          await persist();
+        }
+      }
+    } catch(e) { console.warn("Synthetic demo transcripts were not seeded",String(e?.message||e)); }
+    localStorage.setItem(DEMO_SEED_KEY,"done");
+  }
+
+  if(!state.references?.datasets?.length && localStorage.getItem("qaai-synthetic-library-seed-v1")!=="done") {
+    try {
+      const response=await fetch("/demo/share-reference-library.json",{cache:"no-store"});
+      if(response.ok){
+        const library=normalizeReferenceLibrary(await response.json());
+        if(library.datasets.length)state.references=saveReferenceLibrary(library);
+      }
+    } catch(e) { console.warn("Synthetic demo references were not seeded",String(e?.message||e)); }
+    localStorage.setItem("qaai-synthetic-library-seed-v1","done");
+  }
+
   state.selected = state.selected && state.calls.some(c => c.key === state.selected)
     ? state.selected : state.calls[0]?.key || null;
   render();
