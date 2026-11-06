@@ -1007,7 +1007,7 @@ root.addEventListener("click", async event => {
   if (button.dataset.agent !== undefined) {
     const agent = button.dataset.agent;
     const matches = scopedDemoCalls(activeDemoUser(),state.calls).filter(c=>c.agent===agent);
-    if(!matches.length){notify("This agent is not available to this demo role.",true);return;}
+    if(!matches.length){notify("This agent is not available to your workspace.",true);return;}
     // Open the most recently imported completed interaction by default.
     // A selector inside Inspection makes other interactions accessible.
     const preferred = [...matches].reverse().find(c => c.status === "COMPLETE") || matches.at(-1);
@@ -1279,7 +1279,7 @@ root.addEventListener(
             rubric.criteria.some(c=>!c || typeof c.id!=="string" ||
               !Array.isArray(c.checkpoints)||c.checkpoints.length>12))
           throw Error("Not a supported QA rubric JSON");
-        if(!confirm("Replace the personal demo rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
+        if(!confirm("Replace the current working rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
         state.working.rubric=rubric;
         saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
         state.criterion=editingRubric().criteria[0]?.id||"greet7";
@@ -1299,7 +1299,7 @@ root.addEventListener(
         const normalized=normalizeReferenceLibrary(library);
         if(normalized.datasets.length!==library.datasets.length)
           throw Error("One or more library datasets have invalid structure");
-        if(!confirm("Replace the personal demo reference library with this backup? The imported data will remain in this browser."))return;
+        if(!confirm("Replace the current working reference library with this backup? The imported data will remain in this browser."))return;
         for(const d of normalized.datasets)validateScopedDataset(activeDemoUser(),state.governanceBU,d);
         state.working.references=normalized;
         saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
@@ -1475,63 +1475,30 @@ root.addEventListener("submit",event=>{
 });
 render();
 
-// First-run fixtures are explicitly synthetic. Do not replace user imports or
-// real local history. Records never leave the browser until the user evaluates.
-const DEMO_SEED_KEY = "qaai-synthetic-seed-v1";
+// Load only user-imported records. Never populate the workspace with bundled examples.
 void loadHistory().then(async calls => {
-  const restored = calls.map(c => c.status === "RUNNING" ? { ...c, status: "READY" } : c);
-  // A fresh import wins over late IndexedDB hydration.
-  state.calls = state.calls.length ? mergeImported(restored, state.calls).calls : restored;
-
-  if(!state.calls.length && localStorage.getItem(DEMO_SEED_KEY)!=="done") {
-    try {
-      const response=await fetch("/demo/share-synthetic-transcripts.json",{cache:"no-store"});
-      if(response.ok) {
-        const data=await response.json();
-        const fixtureCalls=parseExport(JSON.stringify(data),"share-synthetic-transcripts.json");
-        if(Array.isArray(fixtureCalls) && fixtureCalls.some(c=>c.status==="READY")){
-          state.calls=mergeImported(state.calls,fixtureCalls).calls;
-          await persist();
-        }
-      }
-    } catch(e) { console.warn("Synthetic demo transcripts were not seeded",String(e?.message||e)); }
-    localStorage.setItem(DEMO_SEED_KEY,"done");
+  const bundled = calls.filter(c=>
+    c.source==="synthetic_presentation" || c.sampleData===true ||
+    /^SAMPLE-SHARE-HASSAN-|^DEMO-SHARE-/i.test(String(c.id||""))
+  );
+  if(bundled.length){
+    await removeHistoryKeys(bundled.map(c=>c.key));
   }
+  const restored = calls.filter(c=>!bundled.includes(c))
+    .map(c=>c.status==="RUNNING"?{...c,status:"READY"}:c);
+  state.calls=state.calls.length?mergeImported(restored,state.calls).calls:restored;
 
-  // Populate a synthetic, previously assessed SHARE shift only when the
-  // personal browser has no completed Hassan records. Never replace real
-  // assessments; presentation fixtures are explicitly marked as examples.
-  const HASSAN_SAMPLE_KEY="qaai-synthetic-hassan-previous-shift-v1";
-  const hasActualHassan=state.calls.some(c=>c.agent==="Hassan Aly"&&c.status==="COMPLETE"&&c.source!=="synthetic_presentation");
-  if(localStorage.getItem(HASSAN_SAMPLE_KEY)!=="done"&&!hasActualHassan){
-    try{
-      const res=await fetch("/demo/hassan-previous-shift-qa.json",{cache:"no-store"});
-      if(res.ok){
-        const examples=await res.json();
-        if(Array.isArray(examples)){
-          const ids=new Set(state.calls.map(c=>String(c.id||"")));
-          const fresh=examples.filter(c=>c&&typeof c.id==="string"&&c.id.startsWith("SAMPLE-SHARE-HASSAN-")&&
-            !ids.has(c.id)&&c.source==="synthetic_presentation"&&c.agent==="Hassan Aly"&&
-            c.status==="COMPLETE"&&Number.isFinite(c.score?.score)&&Array.isArray(c.turns)&&Array.isArray(c.findings)).slice(0,3);
-          if(fresh.length){state.calls=mergeImported(state.calls,fresh).calls;await persist();}
-        }
-      }
-    }catch(e){console.warn("Sample assessed shift could not be loaded",String(e?.message||e));}
-    localStorage.setItem(HASSAN_SAMPLE_KEY,"done");
+  // Retain authorized uploaded references; discard only bundled example datasets.
+  const existing=state.references?.datasets||[];
+  const withoutBundled=existing.filter(d=>
+    !/^synthetic-/i.test(String(d.id||"")) &&
+    !/^synthetic-/i.test(String(d.name||""))
+  );
+  if(withoutBundled.length!==existing.length){
+    state.references=saveReferenceLibrary({...state.references,
+      revision:(Number(state.references.revision)||1)+1,datasets:withoutBundled});
   }
-
-  if(!state.references?.datasets?.length && localStorage.getItem("qaai-synthetic-library-seed-v1")!=="done") {
-    try {
-      const response=await fetch("/demo/share-reference-library.json",{cache:"no-store"});
-      if(response.ok){
-        const library=normalizeReferenceLibrary(await response.json());
-        if(library.datasets.length)state.references=saveReferenceLibrary(library);
-      }
-    } catch(e) { console.warn("Synthetic demo references were not seeded",String(e?.message||e)); }
-    localStorage.setItem("qaai-synthetic-library-seed-v1","done");
-  }
-
-  state.selected = state.selected && state.calls.some(c => c.key === state.selected)
-    ? state.selected : state.calls[0]?.key || null;
+  state.selected=state.selected&&state.calls.some(c=>c.key===state.selected)
+    ?state.selected:state.calls[0]?.key||null;
   render();
-}).catch(e => notify("Local history unavailable: " + e.message, true));
+}).catch(e=>notify("Local history unavailable: "+e.message,true));
