@@ -8,8 +8,8 @@ import {renderQualityContextStrip,qualityGovernanceStats,renderQualityGovernance
 import {demoUsers,canViewPage} from "../public/js/presentation-personas.js";
 import {canConfigureBU,normalizeBU,describeRubricChanges,validateScopedDataset} from "../public/js/presentation-baseline.js";
 const rubric=defaultRubric();
-const fixture=JSON.parse(readFileSync(new URL("../public/demo/hassan-previous-shift-qa.json",import.meta.url),"utf8"))[0];
-const lib=JSON.parse(readFileSync(new URL("../public/demo/share-reference-library.json",import.meta.url),"utf8"));
+const fixture=JSON.parse(readFileSync(new URL("./fixtures/qa-agent-assessments.json",import.meta.url),"utf8"))[0];
+const lib=JSON.parse(readFileSync(new URL("./fixtures/qa-reference-library.json",import.meta.url),"utf8"));
 
 test("combined-score card uses finalized synthetic score only for completed result",()=>{
  const status=renderScoreStatus(fixture);
