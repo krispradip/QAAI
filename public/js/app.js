@@ -159,9 +159,9 @@ function render() {
       : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all",state.directorBrand||"all")
       : state.page === "admin" ? renderDemoAdmin(demoUsers(),readUsage(),scopedCalls,state.apiStatus||"Not checked")
       : state.page === "overview"
-        ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period))
+        ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period),user.role)
       : state.page === "studio" ? studio({...state,calls:scopedCalls,selected:scopedCalls.some(c=>c.key===state.selected)?state.selected:null})
-      : state.page === "agents" ? agentsView({...state,calls:scopedCalls})
+      : state.page === "agents" ? agentsView({...state,calls:scopedCalls,viewerRole:user.role})
       : configShell(state.configTab,
               state.configTab === "rubric"
                 ? configuration(state.rubric,state.criterion)
@@ -416,7 +416,7 @@ function paintProgress() {
 async function run(scope = "ready") {
   if (state.running) return;
   const demoUser=activeDemoUser();
-  if(!canEvaluate(demoUser)){notify("Only the demo BU Lead and Admin can run evaluations.",true);return;}
+  if(!canEvaluate(demoUser)){notify("Only QA Leads, CC Directors and Platform Admins can run evaluations.",true);return;}
 
   const evaluable = c => c && ["READY", "ERROR", "COMPLETE"].includes(c.status)&&scopedDemoCalls(demoUser,[c]).length===1;
   const target = scope === "all"
@@ -780,6 +780,18 @@ document.querySelector("#nav")
       navigate(button.dataset.page);
     }
   });
+
+// Sidebar session controls are outside #view and require their own handler.
+document.querySelector("#qa-demo-persona")?.addEventListener("click",event=>{
+  const button=event.target?.closest?.("#qa-demo-logout");
+  if(!button)return;
+  event.preventDefault?.();
+  if(state.running){notify("Finish the current evaluation before logging out.",true);return;}
+  logoutDemoUser();
+  state.selected=null;state.agentFilter="";state.overviewAgent="";
+  state.resultTab="scorecard";
+  render();
+});
 
 /**
  * The persona picker lives in the fixed sidebar, outside #view.
