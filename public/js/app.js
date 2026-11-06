@@ -28,10 +28,13 @@ import {
 } from "./engine.js";
 import { loadHistory, saveHistory, mergeImported, clearHistory } from "./history.js";
 import { applyPeriod } from "./reporting.js";
-import {loadReferenceLibrary, saveReferenceLibrary, importReferenceDataset, toggleReferenceDataset, deleteReferenceDataset, csvTemplate, activeReferenceEntries} from "./reference.js";
+import {loadReferenceLibrary, saveReferenceLibrary, importReferenceDataset, toggleReferenceDataset, deleteReferenceDataset, csvTemplate, activeReferenceEntries, normalizeReferenceLibrary} from "./reference.js";
 import {configShell, referenceLibraryView} from "./reference-ui.js";
 import { scrollPageToTop } from "./navigation.js";
 import { progressLabels, readProgress, saveProgress, clearProgress } from "./progress.js";
+import { renderUsagePage } from "./presentation-usage.js";
+import { saveUsage, exportUsageCsv } from "./presentation-usage-ledger.js";
+import { normalizeTranscriptText, readDocxTranscript } from "./presentation-docx.js";
 
 import {
   overview,
@@ -56,6 +59,8 @@ const state = {
   importFeedback: "",
   pasteDraft: "",
   resultTab: "scorecard",
+  findingFilter: "all",
+  evidenceView: "all",
 
   rubric: loadRubric(),
   references: loadReferenceLibrary(),
@@ -89,6 +94,8 @@ const titles = {
     "Trace each QA score to evaluated interactions."
   ],
 
+  usage: ["AI Usage & Diagnostics", "Gemini request volumes, daily token usage and rate limits."],
+
   config: [
     "Config",
     "Manage QA scoring parameters and approved evaluation reference materials."
@@ -119,7 +126,9 @@ function render() {
   });
 
   root.innerHTML =
-    state.page === "overview"
+    state.page === "usage"
+      ? renderUsagePage()
+      : state.page === "overview"
       ? overview(applyPeriod(state.calls, state.period).calls, state.rubric, state.overviewAgent, state.period, applyPeriod(state.calls, state.period))
 
       : state.page === "studio"
@@ -133,6 +142,17 @@ function render() {
                 ? configuration(state.rubric,state.criterion)
                 : referenceLibraryView(state.references)
             );
+
+  // Import corporate-format configuration backups locally without publishing
+  // reference-library datasets or rubric data to public GitHub.
+  if (state.page==="config") {
+    const bar=document.createElement("div");
+    bar.className="qa-local-config-restore";
+    bar.innerHTML=state.configTab==="rubric"
+      ? '<div><b>Load QA rubric backup</b><small>Import a saved rubric JSON. Its GPT-4o model selection will be mapped to Gemini for this personal demo. Existing rubric settings are replaced.</small></div><label class="secondary qa-local-file-btn">Import rubric JSON<input type="file" id="qa-import-rubric" accept=".json,application/json" hidden></label>'
+      : '<div><b>Load reference library backup</b><small>Import your versioned library JSON into this browser only. Files are not committed to GitHub or uploaded to Cloudflare until selected entries are sent for a Gemini assessment.</small></div><label class="secondary qa-local-file-btn">Import library JSON<input type="file" id="qa-import-reference-library" accept=".json,application/json" hidden></label>';
+    root.prepend(bar);
+  }
 
   filterRows();
   if (state.page === "config" && state.configTab === "rubric") {
@@ -254,7 +274,7 @@ function load(text, filename) {
     return;
   }
 
-  const incoming = parseExport(text, filename);
+  const incoming = parseExport(normalizeTranscriptText(text), filename);
   // Keep the original pasted transcript visible even if mapping or evaluation is blocked.
   if (filename === "paste.txt") state.pasteDraft = text;
   const merged = mergeImported(state.calls, incoming);
@@ -427,6 +447,20 @@ async function run(scope = "ready") {
       call.score = null;
 
       state.selected = call.key;
+      const startedAt = new Date().toISOString();
+      const attemptId = "gemini-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9);
+      const activeCriteria = snapshot.criteria.filter(c => c.enabled === true);
+      const contextCall = { ...call, businessUnit: call.businessUnit || "SHARE" };
+      const selectedReferences = activeReferenceEntries(referenceSnapshot, contextCall, activeCriteria);
+      const byReference = new Map();
+      for (const entry of selectedReferences) {
+        const key = String(entry.source||"") + "|" + String(entry.version||"");
+        if (!byReference.has(key)) byReference.set(key, {name:entry.source||"Reference",type:entry.type||"",version:entry.version||"—",entries:0});
+        byReference.get(key).entries++;
+      }
+      call.referenceAudit = {revision:referenceSnapshot.revision,files:[...byReference.values()],selectedEntries:selectedReferences.length,at:startedAt};
+      call.assessmentCriteria = clone(activeCriteria);
+      call.aiTelemetry = {inputTokens:null,outputTokens:null,totalTokens:null,requests:[],failedStage:null};
       stage("rules", call);
 
       try {
@@ -437,8 +471,7 @@ async function run(scope = "ready") {
           stage,
           {
             revision: referenceSnapshot.revision,
-            entries: activeReferenceEntries(referenceSnapshot,call,
-              snapshot.criteria.filter(c=>c.enabled===true)),
+            entries: selectedReferences,
           }
         );
 
@@ -475,6 +508,7 @@ async function run(scope = "ready") {
           call.assessmentHistory = [...before.assessmentHistory, previous].slice(-20);
         }
       }
+      saveUsage({id:attemptId,startedAt,endedAt:new Date().toISOString(),interactionId:call.id||call.key,model:snapshot.model,status:call.status,aiTelemetry:call.aiTelemetry||null});
       state.evalProgress.completed++;
       await persist();
       render();
@@ -761,6 +795,24 @@ root.addEventListener("click", event => {
     return;
   }
 
+  if (button.dataset.findingFilter) {
+    state.findingFilter = button.dataset.findingFilter;
+    render();
+    return;
+  }
+  if (button.dataset.evidenceView) {
+    state.evidenceView = button.dataset.evidenceView;
+    render();
+    return;
+  }
+  if (button.id === "pb-export-usage") {
+    const blob = new Blob([exportUsageCsv()],{type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url; anchor.download = "qaai-personal-gemini-usage.csv"; anchor.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    return;
+  }
   if (button.dataset.resultTab) {
     state.resultTab = button.dataset.resultTab;
     render();
@@ -1026,6 +1078,44 @@ root.addEventListener(
       return;
     }
 
+    if (target.id==="qa-import-rubric") {
+      const file=target.files?.[0];if(!file)return;
+      try {
+        if(file.size>750000)throw Error("Rubric JSON exceeds 750 KB");
+        const obj=JSON.parse(await file.text());
+        const rubric=obj?.rubric || obj;
+        if(!rubric || !Array.isArray(rubric.criteria) || !rubric.criteria.length ||
+            rubric.criteria.length>27 || !rubric.rules ||
+            !Array.isArray(rubric.rules.deterministic) ||
+            rubric.criteria.some(c=>!c || typeof c.id!=="string" ||
+              !Array.isArray(c.checkpoints)||c.checkpoints.length>12))
+          throw Error("Not a supported QA rubric JSON");
+        if(!confirm("Replace the personal demo rubric with this backup? Existing rubric settings in this browser will be overwritten."))return;
+        saveRubric(rubric);
+        state.rubric=loadRubric();
+        state.criterion=state.rubric.criteria[0]?.id||"greet7";
+        render();notify("Rubric imported. Gemini remains the evaluation provider; check enabled criteria and save before assessing.");
+      } catch(e) {notify("Rubric import failed: "+String(e.message||e),true);}
+      return;
+    }
+    if (target.id==="qa-import-reference-library") {
+      const file=target.files?.[0];if(!file)return;
+      try {
+        if(file.size>3000000)throw Error("Reference JSON exceeds 3 MB");
+        const obj=JSON.parse(await file.text());
+        const library=obj?.library || obj;
+        if(!library || !Array.isArray(library.datasets) || library.datasets.length>30 ||
+          library.datasets.some(d=>!d || !Array.isArray(d.rows) || typeof d.type!=="string"))
+          throw Error("Not a versioned reference library JSON");
+        const normalized=normalizeReferenceLibrary(library);
+        if(normalized.datasets.length!==library.datasets.length)
+          throw Error("One or more library datasets have invalid structure");
+        if(!confirm("Replace the personal demo reference library with this backup? The imported data will remain in this browser."))return;
+        state.references=saveReferenceLibrary(normalized);
+        render();notify(state.references.datasets.length+" reference dataset versions imported locally.");
+      }catch(e){notify("Reference library import failed: "+String(e.message||e),true);}
+      return;
+    }
     if (target.id === "file") {
       const file = target.files?.[0];
 
@@ -1041,7 +1131,7 @@ root.addEventListener(
 
       try {
         load(
-          await file.text(),
+          /\.docx$/i.test(file.name) ? await readDocxTranscript(file) : await file.text(),
           file.name
         );
       } catch (err) {
@@ -1139,7 +1229,7 @@ root.addEventListener("input", event => {
     pasteImportTimer = setTimeout(() => {
       if (state.running || state.pasteDraft !== snapshot) return;
       try {
-        const parsed = parseExport(snapshot, "paste.txt");
+        const parsed = parseExport(normalizeTranscriptText(snapshot), "paste.txt");
         if (!parsed.some(c=>c.status==="READY")) return;
         load(snapshot,"paste.txt");
       } catch (err) {

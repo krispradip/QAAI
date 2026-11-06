@@ -1,0 +1,52 @@
+/* Compact Gemini presentation inspection. Isolated from base app styles. */
+.pb-inspection {font:inherit;color:inherit}
+.pb-inspection-heading,.pb-heading,.pb-page-head,.pb-criterion-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.pb-inspection-heading h3,.pb-page-head h2{margin:3px 0 5px;font-size:1.4rem}
+.pb-inspection-heading small,.pb-page-head small,.pb-criterion-heading small{color:#516bb6;font-weight:800;font-size:10px;letter-spacing:.1em}
+.pb-inspection-heading p,.pb-page-head p{margin:3px 0 12px;color:#667997;font-size:12px}
+.pb-metrics,.pb-usage-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.pb-usage-metrics{grid-template-columns:repeat(6,minmax(0,1fr))}
+.pb-metrics article,.pb-usage-metrics article{display:flex;flex-direction:column;gap:5px;background:#f8faff;border:1px solid #dce6fa;border-radius:12px;padding:16px;min-width:0}
+.pb-metrics small,.pb-usage-metrics small{font-weight:800;color:#4868a0;letter-spacing:.08em;font-size:10px}
+.pb-metrics strong{font-size:1.65rem;color:#1d3966;overflow-wrap:anywhere}
+.pb-usage-metrics strong{font-size:1.25rem;color:#1d3966}
+.pb-metrics span{font-size:11px;color:#677895}
+.pb-alert{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff9f2;border:1px solid #f4d7bb;padding:12px 14px;border-radius:10px;color:#8f522c;font-size:12px;margin:12px 0}
+.pb-alert small{margin-left:auto}
+.pb-tabs,.pb-filter{display:flex;flex-wrap:wrap;gap:3px;margin:14px 0;border-bottom:1px solid #dce6f4;padding-bottom:5px}
+.pb-tabs button,.pb-filter button{border:0;border-radius:6px;background:transparent;padding:9px 12px;cursor:pointer;color:#516991;font-weight:750;font-size:12px}
+.pb-tabs button.active,.pb-filter button.active{background:#e9efff;color:#2e50ba}
+.pb-heading{align-items:center;margin:12px 0}
+.pb-heading h3{font-size:1.05rem;margin:0}
+.pb-heading span{font-size:12px;color:#667997}
+.pb-criterion,.pb-panel,.pb-transcript{border:1px solid #dde5f6;border-radius:12px;padding:16px;margin:10px 0;background:#fff}
+.pb-criterion-heading{align-items:center;padding-bottom:10px;border-bottom:1px solid #e8ecf7}
+.pb-criterion-heading h4{margin:4px 0;color:#1c3256}
+.pb-criterion-heading span{font-size:11px;color:#657996}
+.pb-check{padding:13px 4px;border-bottom:1px dotted #dbe4f5}
+.pb-check:last-child{border-bottom:0}
+.pb-check-head{display:flex;justify-content:space-between;align-items:start;gap:8px;font-size:12px}
+.pb-check-head>div{line-height:1.75}
+.pb-method{font-size:10px;display:inline-flex;padding:2px 7px;border-radius:5px;font-weight:800;margin-right:7px;white-space:nowrap}
+.pb-method.rule{background:#e4effe;color:#355d96}
+.pb-method.ai{background:#f0e9ff;color:#6d49b3}
+.pb-state{font-size:10px;white-space:nowrap;background:#eef1f7;color:#6d778d;border-radius:6px;padding:4px 7px}
+.pb-state.met{background:#ddf4e6;color:#157047}
+.pb-state.missed{background:#fde8e8;color:#ab3434}
+.pb-state.not-evaluated{background:#fff1d5;color:#995c1f}
+.pb-evidence{margin:8px 0 0 2px;padding:9px 12px;border-left:3px solid #6373e3;background:#f2f5fd;font-size:12px;display:flex;flex-direction:column;gap:5px}
+.pb-note,.pb-empty{font-size:12px;color:#78869c;margin:9px 0}
+.pb-collapse{margin:16px 0;padding:12px;border-radius:8px;border:1px solid #dce6f5;font-size:12px}
+.pb-table{overflow:auto;margin:14px 0 20px}
+.pb-table table{border-collapse:collapse;width:100%;font-size:11px;min-width:570px}
+.pb-table th{background:#f1f4fb;font-weight:800;text-align:left;color:#49638f}
+.pb-table th,.pb-table td{padding:9px 10px;border-bottom:1px solid #e2e9f5;overflow-wrap:anywhere}
+.pb-turn{padding:10px;margin:8px 0;border-radius:10px;border:1px solid #e2e8f6}
+.pb-turn div{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:11px}
+.pb-turn small{color:#75839c}
+.pb-turn p{margin:9px 0 0;font-size:12px}
+.pb-events{font-size:12px}
+.pb-usage h3{margin:26px 0 8px}
+@media(max-width:1050px){.pb-usage-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.pb-metrics,.pb-usage-metrics{grid-template-columns:1fr 1fr}.pb-alert small{margin:0}}
+@media(max-width:420px){.pb-metrics,.pb-usage-metrics{grid-template-columns:1fr}.pb-check-head{flex-direction:column}}

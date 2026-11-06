@@ -50,6 +50,29 @@ const reply = (data, status = 200) =>
     }
   );
 
+const retryAfterMs = response => {
+  // Rate-limit headers are optional, including for mocked or proxied responses.
+  const ms = Number(response?.headers?.get?.("retry-after-ms"));
+  if (Number.isFinite(ms) && ms > 0) return ms;
+  const value = response?.headers?.get?.("retry-after");
+  if (!value) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1000);
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0,date - Date.now()) : null;
+};
+const tokenValues = usage => ({
+  inputTokens:Number.isFinite(usage?.promptTokenCount)?usage.promptTokenCount:null,
+  outputTokens:Number.isFinite(usage?.candidatesTokenCount)?usage.candidatesTokenCount:null,
+  totalTokens:Number.isFinite(usage?.totalTokenCount)?usage.totalTokenCount:null
+});
+const summarizeUsage = requests => {
+  const known = requests.filter(x=>Number.isFinite(x.totalTokens));
+  return { inputTokens:known.length?known.reduce((s,x)=>s+(x.inputTokens||0),0):null,
+    outputTokens:known.length?known.reduce((s,x)=>s+(x.outputTokens||0),0):null,
+    totalTokens:known.length?known.reduce((s,x)=>s+x.totalTokens,0):null,
+    requests, failedStage:requests.find(x=>x.httpStatus>=400)?.stage||null };
+};
 const safe = (value, max) =>
   String(value ?? "").slice(0, max);
 
@@ -157,7 +180,7 @@ function normalize(output, criteria, turns) {
  * Explicit CONFIRMED/CORRECTED/INSUFFICIENT decisions are checked before use.
  * Inconsistent, unsupported or unavailable reviews become UNKNOWN.
  */
-async function validateEvidence(findings, criteria, turns, model, env, instructions, references=[]) {
+async function validateEvidence(findings, criteria, turns, model, env, instructions, references=[], usageTrace=[]) {
   const byCriterion=new Map(criteria.map(c=>[c.id,c]));
   const transcript=new Map(turns.map(t=>[t.line,t]));
   const checks=findings.flatMap(f=>(f.anchors||[])
@@ -223,8 +246,12 @@ Provide a result for EVERY checkpoint ID; do not omit any.`}]},
           responseSchema:schema,maxOutputTokens:8192}
       })
     });
+    const event={at:new Date().toISOString(),stage:"Independent evidence review",httpStatus:response.status,
+      retryAfterMs:response.status===429?retryAfterMs(response):null,inputTokens:null,outputTokens:null,totalTokens:null};
+    usageTrace.push(event);
     if(!response.ok)throw Error("Reviewer unavailable");
     const body=await response.json();
+    Object.assign(event,tokenValues(body.usageMetadata));
     reviews=JSON.parse((body.candidates?.[0]?.content?.parts||[])
       .map(p=>p.text||"").join("")).reviews;
     if(!Array.isArray(reviews))throw Error("Invalid reviewer output");
@@ -555,6 +582,7 @@ Preserve all criterion and checkpoint IDs.
 Return complete JSON matching the schema.
 `;
 
+  const usageTrace = [];
   let result;
 
   try {
@@ -614,6 +642,10 @@ Return complete JSON matching the schema.
     }, 502);
   }
 
+  const initialEvent={at:new Date().toISOString(),stage:"Initial Gemini evaluation",httpStatus:result.status,
+    retryAfterMs:result.status===429?retryAfterMs(result):null,inputTokens:null,outputTokens:null,totalTokens:null};
+  usageTrace.push(initialEvent);
+
   if (!result.ok) {
     // Google replies with structured `error.status` and `error.message`.
     // Do not expose free-form upstream errors to this unauthenticated prototype:
@@ -663,12 +695,14 @@ Return complete JSON matching the schema.
 
     return reply({
       error: message,
-      providerError: {httpStatus:result.status, code, category},
+      providerError: {httpStatus:result.status, code, category, ...(result.status===429 && Number.isFinite(initialEvent.retryAfterMs) ? {retryAfterMs:initialEvent.retryAfterMs} : {})},
+      tokenUsage: summarizeUsage(usageTrace),
     }, result.status === 429 ? 429 : 502);
   }
 
   try {
     const body = await result.json();
+    Object.assign(initialEvent,tokenValues(body.usageMetadata));
 
     const raw = (
       body.candidates?.[0]?.content?.parts || []
@@ -682,14 +716,16 @@ Return complete JSON matching the schema.
       version: VERSION,
       model,
 
-      findings: enforceEvidencePolicy(await validateEvidence(normalize(parsed,compact,turns),compact,turns,model,env,instructions,references))
+      findings: enforceEvidencePolicy(await validateEvidence(normalize(parsed,compact,turns),compact,turns,model,env,instructions,references,usageTrace)),
+      tokenUsage: summarizeUsage(usageTrace)
     });
 
   } catch {
     return reply({
       error:
         "Gemini returned invalid or incomplete " +
-        "structured JSON. Try one smaller call."
+        "structured JSON. Try one smaller call.",
+      tokenUsage: summarizeUsage(usageTrace)
     }, 502);
   }
 }
@@ -712,7 +748,9 @@ export default {
       return reply({
         service: "Qualis AI",
         version: VERSION,
-        apiReady: !!env.GEMINI_API_KEY
+        apiReady: !!env.GEMINI_API_KEY,
+        personalBackup: "gemini_presentation_v1",
+        tokenTelemetry: "gemini_usage_metadata_v1"
       });
     }
 
