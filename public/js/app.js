@@ -1407,6 +1407,28 @@ void loadHistory().then(async calls => {
     localStorage.setItem(DEMO_SEED_KEY,"done");
   }
 
+  // Populate a synthetic, previously assessed SHARE shift only when the
+  // personal browser has no completed Hassan records. Never replace real
+  // assessments; presentation fixtures are explicitly marked as examples.
+  const HASSAN_SAMPLE_KEY="qaai-synthetic-hassan-previous-shift-v1";
+  const hasActualHassan=state.calls.some(c=>c.agent==="Hassan Aly"&&c.status==="COMPLETE"&&c.source!=="synthetic_presentation");
+  if(localStorage.getItem(HASSAN_SAMPLE_KEY)!=="done"&&!hasActualHassan){
+    try{
+      const res=await fetch("/demo/hassan-previous-shift-qa.json",{cache:"no-store"});
+      if(res.ok){
+        const examples=await res.json();
+        if(Array.isArray(examples)){
+          const ids=new Set(state.calls.map(c=>String(c.id||"")));
+          const fresh=examples.filter(c=>c&&typeof c.id==="string"&&c.id.startsWith("SAMPLE-SHARE-HASSAN-")&&
+            !ids.has(c.id)&&c.source==="synthetic_presentation"&&c.agent==="Hassan Aly"&&
+            c.status==="COMPLETE"&&Number.isFinite(c.score?.score)&&Array.isArray(c.turns)&&Array.isArray(c.findings)).slice(0,3);
+          if(fresh.length){state.calls=mergeImported(state.calls,fresh).calls;await persist();}
+        }
+      }
+    }catch(e){console.warn("Sample assessed shift could not be loaded",String(e?.message||e));}
+    localStorage.setItem(HASSAN_SAMPLE_KEY,"done");
+  }
+
   if(!state.references?.datasets?.length && localStorage.getItem("qaai-synthetic-library-seed-v1")!=="done") {
     try {
       const response=await fetch("/demo/share-reference-library.json",{cache:"no-store"});
