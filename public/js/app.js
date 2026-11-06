@@ -1,4 +1,5 @@
-import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
+import {renderPreviewLogin} from "./presentation-login.js";
+import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
 import {readUsage} from "./presentation-usage-ledger.js";
 /**
@@ -126,7 +127,7 @@ function render() {
     const holder=document.querySelector("#qa-demo-persona");if(holder)holder.innerHTML="";
     $("#page-title").textContent="Persona Login";
     $("#page-sub").textContent="Select a presentation user and access their workspace.";
-    root.innerHTML='<section class="qa-login"><div class="qa-login-art"><div class="qa-login-symbol">QA<span>✦</span></div><div class="kicker">MAF / QUALITY INTELLIGENCE</div><h2>One quality platform.<br>Every service perspective.</h2><p>Explore the QA.MAFer.AI experience for agents, business-unit leaders, customer care leadership and platform administrators.</p><small>Cloudflare + Gemini · Personal presentation environment</small></div><div class="qa-login-panel"><div class="kicker">PERSONA</div><h2>Welcome to QA.MAFer.AI</h2><p>Enter the email of a demo persona to open its workspace.</p><form id="qa-demo-login"><label>Email address<input type="email" name="email" id="qa-login-email" placeholder="name@demo.mafer.ai" autocomplete="username" required></label><label>Password <span class="qa-optional">(optional)</span><input type="password" name="password" id="qa-login-password" autocomplete="off" placeholder="Leave blank for demo"></label><button type="submit" class="primary qa-login-submit">Login</button></form><div class="qa-login-options"><small>Choose a presentation persona</small>'+renderDemoLoginAccounts()+'</div><p class="qa-demo-note">Demonstration login only. Email selects a predefined persona; the password field is not checked and provides no account security. Do not enter real passwords.</p></div></section>';
+    root.innerHTML=renderPreviewLogin();
     return;
   }
   document.body?.classList?.remove?.("qa-demo-login-open");
@@ -425,7 +426,7 @@ async function run(scope = "ready") {
       ? state.calls.filter(c => c.agent === state.agentFilter && evaluable(c))
       : scope === "selected"
         ? [state.calls.find(c => c.key === state.selected)].filter(evaluable)
-        : state.calls.filter(c => c.status === "READY");
+        : state.calls.filter(c => c.status === "READY" && evaluable(c));
 
   if (!target.length) {
     notify("No evaluable interaction selected. Check the import status and speaker mapping.", true);
