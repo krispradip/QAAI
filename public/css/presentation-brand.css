@@ -86,3 +86,112 @@ td b,td strong{color:#2a4575}
 @media(prefers-reduced-motion:reduce){.sidebar .brand-mark,.sidebar .brand-mark:before,.sidebar .brand-mark span,.sidebar .brand strong:after{animation:none!important}}
 @media(max-width:1050px){.qa-portfolio-metrics,.qa-admin-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.qa-portfolio-grid,.qa-admin-split{grid-template-columns:1fr}}
 @media(max-width:700px){.qa-portfolio-metrics,.qa-admin-kpis{grid-template-columns:1fr 1fr}.qa-admin-form{grid-template-columns:1fr}.qa-admin-form .primary{grid-column:span 1}}
+
+
+/* QA-STUDIO-COLOR-PARITY: modern blue & cyan replaces residual burgundy.
+   Keep red ONLY for true errors and MISSED states. */
+body :is(button,input,select,textarea):focus-visible{outline-color:#466fe5}
+.studio-v5 .studio-intake-panel,
+.studio-v5 .studio-evaluator-side .panel{background:#fff!important;border-color:#dbe5fa!important;box-shadow:0 5px 22px #21497710!important}
+.studio-v5 .studio-eval-details dt{color:#6c80a3!important}
+.studio-v5 .studio-eval-details dd{color:#214779!important}
+.studio-v5 .studio-intake-panel{background:linear-gradient(145deg,#fff,#f7faff)!important}
+.studio-v5 .studio-intake-panel .panel-heading .kicker,
+.studio-v5 .intake-tile-heading strong,
+.studio-v5 .studio-eval-details .kicker{color:#173d78!important}
+.studio-v5 .studio-intake-grid .intake-tile{background:#fff!important;border-color:#dce8fc!important}
+.studio-v5 .studio-v5-info,.studio-v5 .studio-v5-source-help,.studio-v5 .studio-v5-character-count{color:#7790b8!important}
+.studio-v5 .intake-paste textarea{border-color:#d8e4fa!important;background:#fff!important;color:#203c6a!important}
+.studio-v5 .studio-v5-upload-stack .upload{background:#f4f9ff!important;border-color:#a7c5fa!important}
+.studio-v5 .studio-v5-upload-stack .upload>span,
+.studio-v5 .intake-option-icon{background:#e2eeff!important;color:#3f66d4!important}
+.studio-v5 .studio-v5-upload-stack .upload>b{color:#31538a!important}
+.studio-v5 .studio-v5-upload-stack .upload small{color:#7892b8!important}
+.studio-v5 .studio-v5-toolbar{background:#fbfdff!important;border-color:#dbe5f8!important}
+.studio-v5 .studio-v5-action-group+.studio-v5-action-group{border-left-color:#dce7fa!important}
+.studio-v5 .studio-v5-group-label{color:#6e85aa!important}
+.studio-v5 .studio-evaluator-main .qmf-evaluator{
+ background:radial-gradient(ellipse at 50% 43%,#eef6ff 0%,#edf1ff 50%,#e9f2ff 100%)!important;
+ border-color:#c7ddfb!important;color:#254c93!important
+}
+.studio-v5 .qmf-core{background:radial-gradient(circle at 35% 28%,#7eddf4,#597fe4 55%,#2a52b2 100%)!important;border-color:#abc7ff!important;box-shadow:0 0 0 8px #84baf625,0 10px 38px #527fe46e!important}
+.studio-v5 .qmf-core-shell{filter:drop-shadow(0 0 16px #4da7fc70)!important}
+.studio-v5 .qmf-energy-waves,.studio-v5 .qmf-orbit-outer,.studio-v5 .qmf-orbit-mid,.studio-v5 .qmf-orbit-inner{border-color:#76b5fb99!important;color:#69c8ef!important}
+.studio-v5 .qmf-eval-brand,.studio-v5 .qmf-eval-star{color:#416ce5!important}
+.studio-v5 .qmf-engine-pill{border-color:#c9dcff!important;color:#4c67c6!important;background:#fff!important}
+.studio-v5 .qmf-live-dot{background:#39badb!important;box-shadow:0 0 0 4px #3dbbde33!important}
+.studio-v5 .qmf-eval-copy h3{color:#3052aa!important}
+.studio-v5 .qmf-eval-copy p,.studio-v5 .qmf-eval-footer{color:#738bb6!important}
+.studio-v5 .qmf-evaluator:before{background:linear-gradient(105deg,transparent,#faffff91,transparent)!important}
+.studio-v5 .qmf-eval-visual:before,.studio-v5 .qmf-eval-visual:after{background:linear-gradient(90deg,transparent,#64aafc37,#70d9fb44,transparent)!important}
+.studio-v5 .studio-evaluator-row .progress div{background:linear-gradient(90deg,#4c6ddd,#2cc4db)!important}
+.studio-v5 .studio-queue-row .panel{border-color:#dbe5f8!important}
+.studio-v5 :is(.studio-v5-source-help,.studio-v5-info,.studio-queue-row) small{color:#6d86aa}
+.studio-v5 .intake-paste,.studio-v5 .intake-file,.studio-v5 .intake-audio{border-color:#d5e3fa!important}
+.studio-v5 .intake-paste .intake-option-icon,.studio-v5 .intake-file .intake-option-icon{color:#4868db!important}
+.studio-v5 .studio-v5-run .primary{background:linear-gradient(110deg,#436adf,#43afe1)!important;color:white!important}
+.studio-v5 .studio-v5-actions .secondary{border-color:#d3e1f8!important;color:#315a9c!important;background:#f7faff!important}
+.studio-v5 .studio-v5-actions :is(.primary,.secondary):disabled{opacity:.52!important}
+:where(.studio-v3,.studio-v4,.studio-v5) :is(.intake-step,.intake-option-icon){color:#4776de!important}
+:where(.studio-v3,.studio-v4,.studio-v5) .intake-tile-heading{color:#22436f!important}
+:where(.studio-v3,.studio-v4,.studio-v5) .studio-queue-row .counter{background:#e7eeff!important;color:#4663ae!important}
+:where(.studio-v3,.studio-v4,.studio-v5) .status-complete{background:#e2f6ef!important;color:#138067!important}
+:where(.studio-v3,.studio-v4,.studio-v5) .status-running{background:#e5eaff!important;color:#3f68cf!important}
+:where(.studio-v3,.studio-v4,.studio-v5) .upload{color:#2f5eaf!important}
+.qa-agent-inspection .qa-inspection-selector{background:#f5f9ff!important;border-color:#d7e5fb!important}
+.qa-agent-inspection .qa-inspection-selector label,.qa-agent-inspection .qa-inspection-selector select{color:#2c568e!important}
+.qa-agent-inspection .qa-inspection-selector select{border-color:#d6e5fa!important}
+.qa-floating-save{background:#eef4ff!important;border-color:#c8dafa!important}
+.qa-floating-save span,.qa-inline-heading,.qa-criterion-rules h4{color:#274c8c!important}
+.qa-check-row,.qa-rule-item{border-color:#d9e6f8!important;background:#fbfdff!important}
+.qa-inline-editor{background:#f9fbff!important;border-color:#dbe6f7!important}
+.rubric-row.on button,.rubric-row input,.save-status{color:#325fbd!important}
+.configuration label{color:#3e5d89!important}
+.qa-method-rule{background:#e9f3ff!important;color:#315aba!important;border-color:#bcd5fa!important}
+.qa-method-ai{background:#eeefff!important;color:#5159be!important;border-color:#d4d7fb!important}
+.qa-agent-card:hover,.qa-agent-card.is-selected{border-color:#6e9cf3!important;background:#f4f8ff!important}
+.qa-agent-card-head>span,.qa-agent-score{color:#3157a4!important}
+.qa-call-explainer,.qa-score-guide>div{background:#f6faff!important;border-color:#dce9fc!important}
+.qa-call-explainer summary strong,.qa-score-guide strong{color:#274f8b!important}
+.pb-method.ai{background:#eeeefe;color:#5353bb}
+.pb-method.rule{background:#e7f1ff;color:#365fba}
+/* Separate login-screen presentation. */
+body.qa-demo-login-open .shell{min-height:100vh}
+body.qa-demo-login-open .sidebar,body.qa-demo-login-open .topbar,body.qa-demo-login-open footer{display:none!important}
+body.qa-demo-login-open .main{display:grid;place-items:center;width:100%;min-height:100vh;padding:34px;max-width:none}
+body.qa-demo-login-open #view{width:min(1060px,100%)}
+.qa-login{display:grid;grid-template-columns:1fr 1fr;background:white;border-radius:24px;overflow:hidden;box-shadow:0 35px 80px #142e6440;border:1px solid #d5e5ff;min-height:605px}
+.qa-login-art{background:radial-gradient(circle at 75% 25%,#284c98,#132b56 55%,#0a1936);padding:56px 45px;display:flex;flex-direction:column;justify-content:center;color:#fff;position:relative;overflow:hidden}
+.qa-login-art:after{content:"";position:absolute;width:340px;height:340px;right:-130px;top:30px;border:1px solid #62b3ff66;border-radius:50%;box-shadow:0 0 0 42px #76b5ff12,0 0 0 88px #72d0ff0d}
+.qa-login-symbol{width:84px;height:84px;border-radius:23px;background:linear-gradient(135deg,#2dcddb,#5e70e6);display:grid;place-items:center;font-size:42px;font-weight:900;margin-bottom:45px;box-shadow:0 0 30px #34b9eb88;animation:qa-brand-float 2s ease-in-out infinite;position:relative}
+.qa-login-symbol span{position:absolute;font-size:15px;right:8px;top:8px;color:white}
+.qa-login-art .kicker{color:#76d5f6}
+.qa-login-art h2{font-size:35px;line-height:1.17;letter-spacing:-1.2px;color:#fff;position:relative}
+.qa-login-art p{font-size:14px;line-height:1.85;color:#c0d5f5}
+.qa-login-art small{color:#8cb9ef;margin-top:35px}
+.qa-login-panel{padding:49px 42px;display:flex;flex-direction:column;justify-content:center}
+.qa-login-panel h2{font-size:26px;color:#172e54;margin:9px 0}
+.qa-login-panel>p{color:#8291aa;line-height:1.7}
+.qa-login-panel form{display:flex;flex-direction:column;gap:18px;margin:18px 0}
+.qa-login-panel form label{color:#405b86;font-size:12px;font-weight:800;display:flex;flex-direction:column;gap:8px}
+.qa-login-panel input{width:100%;padding:13px;border:1px solid #cad9f2;border-radius:10px;color:#1b3969;background:white}
+.qa-login-panel input:focus-visible{outline:2px solid #5884f0}
+.qa-optional{font-weight:500;color:#8395af;display:inline}
+.qa-login-submit{padding:14px}
+.qa-login-options{border-top:1px solid #e0e9f7;margin-top:7px;padding-top:17px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.qa-login-options>small{grid-column:span 2;color:#7d90b2;font-size:10px;font-weight:850;letter-spacing:.06em}
+.qa-login-options button{background:#f5f9ff;border:1px solid #d8e5fb;border-radius:10px;padding:11px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.qa-login-options button:hover{background:#eaf2ff;border-color:#88abea}
+.qa-login-options button b{color:#31579d;font-size:11px}
+.qa-login-options button span{color:#7b8eae;font-size:9px;overflow-wrap:anywhere}
+.qa-login-panel .qa-demo-note{margin-top:17px}
+.qa-session-user{display:flex;flex-direction:column;padding:13px 10px;margin:0 4px 19px;border-radius:12px;border:1px solid #3d608b;background:#14294b}
+.qa-session-user>span{font-size:9px;color:#66d2ed;font-weight:900;letter-spacing:1.1px}
+.qa-session-user b{color:white;font-size:12px;margin-top:6px}
+.qa-session-user small{color:#9cb2d1;margin-top:3px;font-size:10px;overflow-wrap:anywhere}
+.qa-session-user em{font-style:normal;color:#87c5fa;font-size:10px;margin-top:4px}
+.qa-session-user button{margin-top:12px;background:#29466f;border:1px solid #5176a7;color:white;width:100%;border-radius:7px;padding:8px;font-size:11px;text-align:center}
+.qa-session-user button:hover{background:#385e92}
+@media(max-width:790px){.qa-login{grid-template-columns:1fr}.qa-login-art{padding:26px 30px;min-height:230px}.qa-login-art h2{font-size:26px}.qa-login-art small{margin-top:8px}.qa-login-symbol{width:57px;height:57px;font-size:28px;margin-bottom:12px}.qa-login-panel{padding:30px}}
+@media(max-width:530px){body.qa-demo-login-open .main{padding:12px}.qa-login-options{grid-template-columns:1fr}.qa-login-options>small{grid-column:span 1}}
+@media(prefers-reduced-motion:reduce){.qa-login-symbol{animation:none}}
