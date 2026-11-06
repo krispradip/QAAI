@@ -4,17 +4,17 @@
  * authorization or SSO. Protect real records at an authenticated backend.
  */
 export const ROLE_LABELS=Object.freeze({
-  agent:"Agent",bu_lead:"SHARE BU Lead",cc_lead:"Customer Care Lead",admin:"Platform Admin"
+  agent:"Agent",bu_lead:"SHARE QA Lead",cc_lead:"CC Director",admin:"Platform Admin"
 });
 const USERS_KEY="qaai-demo-user-directory-v1";
-const ACTIVE_KEY="qaai-demo-session-v2";
+const ACTIVE_KEY="qaai-demo-session-v3";
 const session=()=>typeof sessionStorage!=="undefined"?sessionStorage:localStorage;
-const defaultEmail=name=>"demo."+String(name||"user").toLowerCase().replace(/[^a-z0-9]+/g,".").replace(/^\.|\.$/g,"")+"@demo.mafer.ai";
+const defaultEmail=(name,id)=>"user."+String(id||name||"unassigned").toLowerCase().replace(/[^a-z0-9]+/g,".")+"@unassigned.invalid";
 const defaults=[
-  {id:"demo-agent-001",email:"layla.agent@demo.mafer.ai",name:"Layla Demo",role:"agent",businessUnit:"SHARE",agent:"Layla Demo",active:true,system:true},
-  {id:"demo-bulead-001",email:"share.lead@demo.mafer.ai",name:"SHARE BU Lead",role:"bu_lead",businessUnit:"SHARE",agent:"",active:true,system:true},
-  {id:"demo-cclead-001",email:"cc.director@demo.mafer.ai",name:"Customer Care Director",role:"cc_lead",businessUnit:"All",agent:"",active:true,system:true},
-  {id:"demo-admin-001",email:"admin@demo.mafer.ai",name:"Platform Administrator",role:"admin",businessUnit:"All",agent:"",active:true,system:true}
+  {id:"demo-agent-001",email:"Hassan.Aly@maf.ae",name:"Hassan Aly",role:"agent",businessUnit:"SHARE",agent:"Hassan Aly",active:true,system:true},
+  {id:"demo-bulead-001",email:"Rima.Soliman@maf.ae",name:"Rima Soliman",role:"bu_lead",businessUnit:"SHARE",agent:"",active:true,system:true},
+  {id:"demo-cclead-001",email:"Nadia.Diehl@maf.ae",name:"Nadia Diehl",role:"cc_lead",businessUnit:"All",agent:"",active:true,system:true},
+  {id:"demo-admin-001",email:"Pradip.krishnamoorthy@maf.ae",name:"Pradip Krishnamoorthy",role:"admin",businessUnit:"All",agent:"",active:true,system:true}
 ];
 const text=(x,n=100)=>String(x??"").trim().slice(0,n);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -23,7 +23,7 @@ export function demoUsers(){
     const raw=JSON.parse(localStorage.getItem(USERS_KEY)||"[]");
     if(!Array.isArray(raw))return defaults.map(x=>({...x}));
     const extra=raw.filter(x=>x&&!x.system&&!defaults.some(d=>d.id===x.id)&&ROLE_LABELS[x.role])
-      .map(x=>({id:text(x.id,60),email:text(x.email||defaultEmail(x.name),120).toLowerCase(),name:text(x.name),role:x.role,businessUnit:text(x.businessUnit,50),agent:text(x.agent),active:x.active!==false,system:false})).slice(0,40);
+      .map(x=>({id:text(x.id,60),email:text(x.email||defaultEmail(x.name,x.id),120),name:text(x.name),role:x.role,businessUnit:text(x.businessUnit,50),agent:text(x.agent),active:x.active!==false,system:false})).slice(0,40);
     const flags=new Map(raw.filter(x=>x?.system).map(x=>[x.id,x.active!==false]));
     return defaults.map(x=>({...x,active:flags.get(x.id)??x.active})).concat(extra);
   } catch {return defaults.map(x=>({...x}));}
@@ -52,8 +52,7 @@ export function demoSessionHTML(user){
     '<button type="button" id="qa-demo-logout">Log out</button></div>';
 }
 export function renderDemoLoginAccounts(){
-  return demoUsers().filter(x=>x.active&&x.system).map(x=>
-    '<button type="button" data-fill-demo-email="'+esc(x.email)+'"><b>'+esc(ROLE_LABELS[x.role])+'</b><span>'+esc(x.email)+'</span></button>').join("");
+  return "";
 }
 export function demoPermissions(user){
   switch(user?.role){
@@ -88,7 +87,7 @@ export function createDemoUser(input){
   const businessUnit=role==="admin"||role==="cc_lead"?"All":text(input.businessUnit||"SHARE",60);
   if(role==="agent"&&!agent)throw Error("Map the demo agent to an agent name");
   const id="demo-custom-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);
-  const email=text(input?.email||defaultEmail(name),120).toLowerCase();
+  const email=text(input?.email,120);
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error("Enter a valid demo email");
   if(list.some(x=>x.email?.toLowerCase()===email))throw Error("This demo email already exists");
   const user={id,email,name,role,agent,businessUnit,active:true,system:false};
