@@ -15,11 +15,10 @@ globalThis.sessionStorage={
  getItem:k=>session.get(k)||null,setItem:(k,v)=>session.set(k,String(v)),removeItem:k=>session.delete(k)
 };
 const fixtures=JSON.parse(readFileSync(new URL("../public/demo/hassan-previous-shift-qa.json",import.meta.url),"utf8"));
-test("four assigned MAF persona identifiers map to expected roles",()=>{
+test("three assigned MAF persona identifiers map to expected roles",()=>{
  const expected=[
   ["Hassan.Aly@maf.ae","agent","Hassan Aly"],
   ["Rima.Soliman@maf.ae","bu_lead","Rima Soliman"],
-  ["Nadia.Diehl@maf.ae","cc_lead","Nadia Diehl"],
   ["Pradip.krishnamoorthy@maf.ae","admin","Pradip Krishnamoorthy"]
  ];
  assert.deepEqual(demoUsers().filter(x=>x.system).map(x=>[x.email,x.role,x.name]),expected);
@@ -29,15 +28,15 @@ test("four assigned MAF persona identifiers map to expected roles",()=>{
 test("login is a visibly marked email-only preview with no password or chooser",()=>{
  const html=renderPreviewLogin();
  assert.match(html,/name@maf\.ae/);
- assert.match(html,/NO AUTHENTICATION/);
+ assert.match(html,/EMAIL-BASED WORKSPACE ACCESS/);
  assert.doesNotMatch(html,/type="password"|Choose a presentation persona|@demo\.mafer\.ai/);
 });
-test("agent is read-only while lead, director and admin can evaluate",()=>{
+test("agent is read-only while lead and admin can evaluate",()=>{
  const users=demoUsers();
  const agent=users.find(x=>x.role==="agent");
  assert.equal(canEvaluate(agent),false);
  assert.equal(canViewPage(agent,"studio"),false);
- for(const role of ["bu_lead","cc_lead","admin"]){
+ for(const role of ["bu_lead","admin"]){
   const user=users.find(x=>x.role===role);
   assert.equal(canEvaluate(user),true);
   assert.equal(canViewPage(user,"studio"),true);
@@ -60,7 +59,7 @@ test("previous-shift records are synthetic completed QA examples with inspected 
  const html=renderAgentRecentAssessments(fixtures,"Hassan Aly");
  assert.match(html,/Previous-shift QA outcomes/);
  assert.match(html,/SAMPLE-SHARE-HASSAN-001/);
- assert.match(html,/Sample assessment/);
+ assert.doesNotMatch(html,/Sample assessment/);
  assert.match(html,/Inspect QA/);
  assert.doesNotMatch(html,/Reassess|data-page-go="studio"/);
 });
@@ -81,5 +80,5 @@ test("sidebar logout handler is bound outside dynamic #view",()=>{
  assert.match(s,/logoutDemoUser\(\)/);
  assert.match(s,/renderPreviewLogin\(\)/);
  assert.match(s,/personaRole:user\.role/);
- assert.match(s,/const HASSAN_SAMPLE_KEY/);
+ assert.doesNotMatch(s,/const HASSAN_SAMPLE_KEY/);
 });
