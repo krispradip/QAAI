@@ -51,9 +51,10 @@ const reply = (data, status = 200) =>
   );
 
 const retryAfterMs = response => {
-  const ms = Number(response.headers.get("retry-after-ms"));
+  // Rate-limit headers are optional, including for mocked or proxied responses.
+  const ms = Number(response?.headers?.get?.("retry-after-ms"));
   if (Number.isFinite(ms) && ms > 0) return ms;
-  const value = response.headers.get("retry-after");
+  const value = response?.headers?.get?.("retry-after");
   if (!value) return null;
   const seconds = Number(value);
   if (Number.isFinite(seconds) && seconds >= 0) return Math.ceil(seconds * 1000);
@@ -694,7 +695,7 @@ Return complete JSON matching the schema.
 
     return reply({
       error: message,
-      providerError: {httpStatus:result.status, code, category, retryAfterMs:initialEvent.retryAfterMs},
+      providerError: {httpStatus:result.status, code, category, ...(result.status===429 && Number.isFinite(initialEvent.retryAfterMs) ? {retryAfterMs:initialEvent.retryAfterMs} : {})},
       tokenUsage: summarizeUsage(usageTrace),
     }, result.status === 429 ? 429 : 502);
   }
