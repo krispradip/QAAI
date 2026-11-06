@@ -1,3 +1,6 @@
+import {activeDemoUser,chooseDemoUser,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
+import {renderDirectorPortfolio} from "./presentation-portfolio.js";
+import {readUsage} from "./presentation-usage-ledger.js";
 /**
  * QA-APP-001 | Qualis v2.2.0
  *
@@ -96,6 +99,8 @@ const titles = {
 
   usage: ["AI Usage & Diagnostics", "Gemini request volumes, daily token usage and rate limits."],
 
+  portfolio: ["BU Performance", "Cross-business-unit quality, volume and coverage."],
+  admin: ["Platform Administration", "Demo user lifecycle, platform status and governance."],
   config: [
     "Config",
     "Manage QA scoring parameters and approved evaluation reference materials."
@@ -111,6 +116,17 @@ function render() {
   const previousY = preserveScroll ? window.scrollY : 0;
   const previousPanel = preserveScroll && state.configTab === "rubric" ? root.querySelector(".configuration .index") : null;
   const previousPanelY = previousPanel?.scrollTop || 0;
+  const user=activeDemoUser();
+  if(!canViewPage(user,state.page))state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+  const scopedCalls=scopedDemoCalls(user,state.calls);
+  if(state.selected&&!scopedCalls.some(c=>c.key===state.selected))state.selected=null;
+  if(state.agentFilter&&!scopedCalls.some(c=>c.agent===state.agentFilter))state.agentFilter="";
+  const nav=document.querySelector("#nav");
+  const navHTML=demoNavigation(user);
+  if(nav.dataset.persona!==user.id){nav.innerHTML=navHTML;nav.dataset.persona=user.id;}
+  const holder=document.querySelector("#qa-demo-persona");
+  if(holder)holder.innerHTML=demoSelectorHTML(user);
+  document.querySelector(".sidebar-bottom")?.setAttribute("data-demo-role",user.role);
   const [title, sub] = titles[state.page];
 
   $("#page-title").textContent = title;
@@ -126,18 +142,14 @@ function render() {
   });
 
   root.innerHTML =
-    state.page === "usage"
-      ? renderUsagePage()
+    state.page === "usage" ? renderUsagePage()
+      : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all")
+      : state.page === "admin" ? renderDemoAdmin(demoUsers(),readUsage(),scopedCalls,state.apiStatus||"Not checked")
       : state.page === "overview"
-      ? overview(applyPeriod(state.calls, state.period).calls, state.rubric, state.overviewAgent, state.period, applyPeriod(state.calls, state.period))
-
-      : state.page === "studio"
-        ? studio(state)
-
-        : state.page === "agents"
-          ? agentsView(state)
-
-          : configShell(state.configTab,
+        ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period))
+      : state.page === "studio" ? studio({...state,calls:scopedCalls,selected:scopedCalls.some(c=>c.key===state.selected)?state.selected:null})
+      : state.page === "agents" ? agentsView({...state,calls:scopedCalls})
+      : configShell(state.configTab,
               state.configTab === "rubric"
                 ? configuration(state.rubric,state.criterion)
                 : referenceLibraryView(state.references)
@@ -218,6 +230,7 @@ function notify(message, error = false) {
 
 function navigate(page) {
   if (state.running) return;
+  if(!canViewPage(activeDemoUser(),page)){notify("This page is outside the selected demo role.",true);return;}
   if (state.page === "config" && page !== "config" && !captureCriterionDraft()) return;
 
 
@@ -269,6 +282,7 @@ function filterRows() {
  * Require mapping when named speakers have unknown roles.
  */
 function load(text, filename) {
+  if(!canEvaluate(activeDemoUser())){notify("This demo persona cannot import or evaluate interactions.",true);return;}
   if (state.running) {
     notify("Wait for the current evaluation to finish before importing.", true);
     return;
@@ -388,8 +402,10 @@ function paintProgress() {
 }
 async function run(scope = "ready") {
   if (state.running) return;
+  const demoUser=activeDemoUser();
+  if(!canEvaluate(demoUser)){notify("Only the demo BU Lead and Admin can run evaluations.",true);return;}
 
-  const evaluable = c => c && ["READY", "ERROR", "COMPLETE"].includes(c.status);
+  const evaluable = c => c && ["READY", "ERROR", "COMPLETE"].includes(c.status)&&scopedDemoCalls(demoUser,[c]).length===1;
   const target = scope === "all"
     ? state.calls.filter(evaluable)
     : scope === "agent"
@@ -755,14 +771,27 @@ document.querySelector("#nav")
 /**
  * Dynamic button and row actions.
  */
-root.addEventListener("click", event => {
+root.addEventListener("click", async event => {
   const button = event.target.closest(
     "button,[data-call]"
   );
 
   if (!button) return;
-
-  if (button.dataset.configTab) {
+  if(button.dataset.demoUserToggle){
+    if(activeDemoUser().role!=="admin")return;
+    try{const existing=demoUsers().find(x=>x.id===button.dataset.demoUserToggle);
+      setDemoUserActive(button.dataset.demoUserToggle,!existing?.active);render();notify("Demo user status updated.");
+    }catch(e){notify(e.message,true);}return;
+  }
+  if(button.id==="qa-check-health"){
+    if(activeDemoUser().role!=="admin")return;
+    state.apiStatus="Checking";render();
+    try{const response=await fetch("/api/health",{cache:"no-store"});const data=await response.json();
+       state.apiStatus=response.ok&&data.apiReady?"Gemini ready":"Not ready";
+    }catch{state.apiStatus="Unavailable";}
+    render();return;
+  }
+  if(button.dataset.configTab) {
     if (state.configTab === button.dataset.configTab) return;
     if (state.configTab === "rubric" && !captureCriterionDraft()) return;
     state.configTab = button.dataset.configTab;
@@ -825,6 +854,7 @@ root.addEventListener("click", event => {
   }
 
   if (button.id === "clearHistory") {
+    if(activeDemoUser().role!=="admin"){notify("Only the demo administrator can clear the shared browser history.",true);return;}
     if (state.running || !confirm("Permanently delete saved QA.MAFer.AI interaction history from this browser?")) return;
     void clearHistory().then(() => { state.calls = []; state.selected = null; state.evalProgress = null; clearProgress(typeof localStorage === "undefined" ? null : localStorage); render(); notify("Saved history cleared."); }).catch(e => notify(e.message, true));
     return;
@@ -838,7 +868,8 @@ root.addEventListener("click", event => {
 
   if (button.dataset.agent !== undefined) {
     const agent = button.dataset.agent;
-    const matches = state.calls.filter(c => c.agent === agent);
+    const matches = scopedDemoCalls(activeDemoUser(),state.calls).filter(c=>c.agent===agent);
+    if(!matches.length){notify("This agent is not available to this demo role.",true);return;}
     // Open the most recently imported completed interaction by default.
     // A selector inside Inspection makes other interactions accessible.
     const preferred = [...matches].reverse().find(c => c.status === "COMPLETE") || matches.at(-1);
@@ -851,12 +882,14 @@ root.addEventListener("click", event => {
   }
 
   if (button.dataset.call) {
+    if(!scopedDemoCalls(activeDemoUser(),state.calls).some(c=>c.key===button.dataset.call))return;
     state.selected = button.dataset.call;
     render();
     return;
   }
 
   if (button.dataset.open) {
+    if(!scopedDemoCalls(activeDemoUser(),state.calls).some(c=>c.key===button.dataset.open))return;
     state.selected = button.dataset.open;
     state.agentFilter = state.calls.find(c => c.key === state.selected)?.agent || "";
     state.resultTab = "scorecard";
@@ -878,6 +911,7 @@ root.addEventListener("click", event => {
   }
 
   if (button.id === "clearBatch") {
+    if(!canEvaluate(activeDemoUser()))return;
     if (state.running || !state.calls.length) return;
     if (!confirm("Remove all interactions, transcripts and saved QA assessments from this browser? This cannot be undone.")) return;
     void clearHistory().then(() => {
@@ -1048,7 +1082,17 @@ root.addEventListener(
   "change",
   async event => {
     const target = event.target;
-
+    if(target.id==="qa-demo-user"){
+      if(state.running){notify("Switch personas after evaluation completes.",true);render();return;}
+      try{chooseDemoUser(target.value);const user=activeDemoUser();
+        state.selected=null;state.agentFilter=user.role==="agent"?user.agent:"";state.overviewAgent=user.role==="agent"?user.agent:"";
+        state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+        state.resultTab="scorecard";render();
+      }catch(e){notify(e.message,true);}return;
+    }
+    if(target.id==="qa-director-bu"){
+      state.directorBU=target.value;render();return;
+    }
     if (target.hasAttribute("data-ref-upload")) {
       const file = target.files?.[0];
       if (!file) return;
@@ -1220,6 +1264,7 @@ root.addEventListener(
 let pasteImportTimer = null;
 root.addEventListener("input", event => {
   if (event.target.id === "paste") {
+    if(!canEvaluate(activeDemoUser()))return;
     state.pasteDraft = event.target.value;
     const characterCount = root.querySelector("#paste-count");
     if (characterCount) characterCount.textContent = state.pasteDraft.length.toLocaleString("en-US");
@@ -1244,6 +1289,14 @@ root.addEventListener("input", event => {
   }
 });
 
+root.addEventListener("submit",event=>{
+  if(event.target.id!=="qa-demo-user-form")return;
+  event.preventDefault();
+  if(activeDemoUser().role!=="admin")return;
+  const fields=new FormData(event.target);
+  try{createDemoUser({name:fields.get("name"),role:fields.get("role"),businessUnit:fields.get("businessUnit"),agent:fields.get("agent")});
+    render();notify("Demo user onboarded.");}catch(e){notify(String(e.message||e),true);}
+});
 render();
 
 // Load browser-local results after refresh.
