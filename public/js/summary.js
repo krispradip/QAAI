@@ -19,6 +19,7 @@ function scopeStats(calls) {
   const included = calls.filter(c => c.status !== "DUPLICATE");
   const completed = included.filter(c => c.status === "COMPLETE");
   const rated = completed.filter(c => Number.isFinite(c.score?.score));
+  const observedOnly=completed.filter(c=>!Number.isFinite(c.score?.score)&&Number.isFinite(c.score?.observedScore));
   const flags = completed.flatMap(c => c.findings || [])
     .filter(f => f.status === "SCORED" && Number.isFinite(f.score) && f.score <= 50);
   return {
@@ -27,7 +28,9 @@ function scopeStats(calls) {
     score: average(rated.map(c => c.score.score)),
     coverage: average(completed.map(c => Number.isFinite(c.score?.coverage) ? c.score.coverage : 0)),
     flags: flags.length,
-    scoredCalls: rated.length
+    scoredCalls: rated.length,
+    observedOnlyScore: average(observedOnly.map(c=>c.score.observedScore)),
+    observedOnlyCalls: observedOnly.length
   };
 }
 
@@ -85,7 +88,10 @@ export function renderDashboardSummary(calls, selectedAgent = "", options = {}) 
         ].join(""),
       '</div>',
       '<div class="metrics qa-summary-metrics">',
-        metric("AVERAGE QA SCORE", pct(s.score), s.scoredCalls + " scored calls",
+        metric("AVERAGE QA SCORE", pct(s.score),
+          s.observedOnlyCalls ? (s.scoredCalls+" finalized · "+s.observedOnlyCalls+
+            " observed only"+(s.observedOnlyScore===null?"":" ("+pct(s.observedOnlyScore)+", non-final)"))
+            : (s.scoredCalls+" finalized calls"),
           "Arithmetic mean of completed, scored call QA percentages. Not full-rubric compliance."),
         metric("AVERAGE COVERAGE", pct(s.coverage), "Across " + s.completed + " completed calls",
           "Average proportion of applicable enabled rubric weight backed by scored findings."),

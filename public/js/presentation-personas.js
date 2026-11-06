@@ -55,9 +55,9 @@ export function renderDemoLoginAccounts(){ return ""; }
 export function demoPermissions(user){
   switch(user?.role){
     case "agent":return new Set(["overview","agents"]);
-    case "bu_lead":return new Set(["overview","studio","agents"]);
-    case "cc_lead":return new Set(["portfolio","overview","studio","agents"]);
-    case "admin":return new Set(["admin","portfolio","overview","studio","agents","usage","config"]);
+    case "bu_lead":return new Set(["overview","studio","agents","standards"]);
+    case "cc_lead":return new Set(["portfolio","overview","studio","agents","standards"]);
+    case "admin":return new Set(["admin","portfolio","overview","studio","agents","standards","usage","config"]);
     default:return new Set();
   }
 }
@@ -110,6 +110,7 @@ export function demoNavigation(user){
   const entries=[
     ["overview","▦","Home"],["portfolio","▥","BU Performance"],["studio","✦","AI Evaluation Studio"],
     ["agents","◉",user.role==="agent"?"My Performance":"Agents & Reports"],
+    ["standards","▤","Rubric & References"],
     ["usage","▤","AI Usage & Diagnostics"],["config","⚙","Config"],["admin","♙","Platform Administration"]
   ];
   const allowed=demoPermissions(user);

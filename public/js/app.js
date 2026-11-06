@@ -1,3 +1,4 @@
+import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
 import {renderPreviewLogin} from "./presentation-login.js";
 import {activeDemoUser,chooseDemoUser,loginDemoEmail,logoutDemoUser,demoSessionHTML,renderDemoLoginAccounts,demoUsers,demoNavigation,demoSelectorHTML,scopedDemoCalls,canViewPage,canEvaluate,createDemoUser,setDemoUserActive,renderDemoAdmin} from "./presentation-personas.js";
 import {renderDirectorPortfolio} from "./presentation-portfolio.js";
@@ -102,6 +103,7 @@ const titles = {
   usage: ["AI Usage & Diagnostics", "Gemini request volumes, daily token usage and rate limits."],
 
   portfolio: ["BU Performance", "Cross-business-unit quality, volume and coverage."],
+  standards: ["Rubric & References", "View active quality standards and approved reference context."],
   admin: ["Platform Administration", "Demo user lifecycle, platform status and governance."],
   config: [
     "Config",
@@ -159,6 +161,7 @@ function render() {
     state.page === "usage" ? renderUsagePage()
       : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all",state.directorBrand||"all")
       : state.page === "admin" ? renderDemoAdmin(demoUsers(),readUsage(),scopedCalls,state.apiStatus||"Not checked")
+      : state.page === "standards" ? renderQualityGovernance(state.rubric,state.references,user.role,state.directorBU||"SHARE")
       : state.page === "overview"
         ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period),{personaRole:user.role,allowClearHistory:user.role==="admin"})
       : state.page === "studio" ? studio({...state,calls:scopedCalls,selected:scopedCalls.some(c=>c.key===state.selected)?state.selected:null})
@@ -168,6 +171,10 @@ function render() {
                 ? configuration(state.rubric,state.criterion)
                 : referenceLibraryView(state.references)
             );
+
+  if((state.page==="overview"&&user.role==="bu_lead") || (state.page==="portfolio"&&user.role==="cc_lead") || (state.page==="admin"&&user.role==="admin")) {
+    root.innerHTML=renderQualityContextStrip(state.rubric,state.references,user.role)+root.innerHTML;
+  }
 
   // Import corporate-format configuration backups locally without publishing
   // reference-library datasets or rubric data to public GitHub.

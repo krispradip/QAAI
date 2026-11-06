@@ -601,10 +601,11 @@ export function agents(calls) {
     if (c.status === "COMPLETE") {
       a.completed++;
 
-      if (c.score?.score !== null) {
-        a.scores.push(c.score.score);
-        a.coverages.push(c.score.coverage);
-      }
+      // A completed evaluation can legitimately lack a final combined QA
+      // score when evidence coverage is incomplete. Do not average NaN or
+      // treat that observed-only result as a final score.
+      if (Number.isFinite(c.score?.score)) a.scores.push(c.score.score);
+      if (Number.isFinite(c.score?.coverage)) a.coverages.push(c.score.coverage);
     }
 
     map.set(c.agent, a);
