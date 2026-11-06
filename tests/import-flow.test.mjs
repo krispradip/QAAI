@@ -80,6 +80,12 @@ test("real app controller handles paste and shows an enabled Evaluate selected b
   globalThis.localStorage = {
     getItem: () => null, setItem: () => {}
   };
+  // App tests use a preselected presentation BU Lead. Real browsers start
+  // on the email-based demo login screen until a user signs in.
+  globalThis.sessionStorage = {
+    getItem: k => k==="qaai-demo-session-v2"?"demo-bulead-001":null,
+    setItem: () => {}, removeItem: () => {}
+  };
   globalThis.indexedDB = undefined;
   await import("../public/js/app.js");
   const click = button => root.listeners.click({
