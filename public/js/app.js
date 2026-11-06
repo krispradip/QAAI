@@ -769,6 +769,26 @@ document.querySelector("#nav")
   });
 
 /**
+ * The persona picker lives in the fixed sidebar, outside #view.
+ * Demo switching is UI behavior only, never a security boundary.
+ */
+document.querySelector("#qa-demo-persona")?.addEventListener("change",event=>{
+  if(event.target.id!=="qa-demo-user")return;
+  if(state.running){notify("Switch personas after evaluation completes.",true);render();return;}
+  try{
+    chooseDemoUser(event.target.value);
+    const user=activeDemoUser();
+    state.selected=null;
+    state.agentFilter=user.role==="agent"?user.agent:"";
+    state.overviewAgent=user.role==="agent"?user.agent:"";
+    state.page=user.role==="cc_lead"?"portfolio":user.role==="admin"?"admin":"overview";
+    state.resultTab="scorecard";
+    render();
+    scrollPageToTop(window,document);
+  }catch(e){notify(String(e.message||e),true);}
+});
+
+/**
  * Dynamic button and row actions.
  */
 root.addEventListener("click", async event => {
