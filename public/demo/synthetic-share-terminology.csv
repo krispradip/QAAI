@@ -1,0 +1,4 @@
+term,meaning,aliases,language,businessUnit,market,channel,notes
+SHARE Points,Demo loyalty reward balance,reward points|points balance,en,SHARE,UAE,Call,Synthetic explanation only
+SHARE app,Demo mobile loyalty application,mobile app|SHARE application,en,SHARE,UAE,Call,Illustrative terminology
+Cashier scan,Illustrative code scan for loyalty identifier,scan code|QR,en,SHARE,UAE,Call,Do not infer system events
