@@ -43,7 +43,8 @@ const metric = (title, value, note, description) =>
  * Mean scores are simple per-completed-call averages; not
  * model certainty, full-rubric compliance, or staff ranking.
  */
-export function renderDashboardSummary(calls, selectedAgent = "") {
+export function renderDashboardSummary(calls, selectedAgent = "", options = {}) {
+  const agentView=options.personaRole==="agent";
   const agentRows = agents(calls);
   const names = agentRows.map(a => a.agent);
   const selected = names.includes(selectedAgent) ? selectedAgent : "";
@@ -71,15 +72,17 @@ export function renderDashboardSummary(calls, selectedAgent = "") {
     '<section class="panel qa-dashboard-panel">',
       '<div class="panel-heading qa-dashboard-heading">',
         '<div><span class="kicker">QUALITY SCORECARDS</span>',
-        '<h3>Team and agent performance</h3>',
+        '<h3>'+(agentView?'My quality scorecard':'Team and agent performance')+'</h3>',
         '<p class="muted">Scope: ' + esc(label) + ' · Completed calls only contribute to scores</p></div>',
-        '<label class="qa-filter-label">Show results for',
-          '<select id="overview-agent-filter" aria-label="Filter QA results by agent">',
-            '<option value="">All agents</option>',
-            names.map(a => '<option value="' + esc(a) + '"' +
-              (a === selected ? ' selected' : '') + '>' + esc(a) + '</option>').join(""),
-          '</select>',
-        '</label>',
+        agentView ? '' : [
+          '<label class="qa-filter-label">Show results for',
+            '<select id="overview-agent-filter" aria-label="Filter QA results by agent">',
+              '<option value="">All agents</option>',
+              names.map(a => '<option value="' + esc(a) + '"' +
+                (a === selected ? ' selected' : '') + '>' + esc(a) + '</option>').join(""),
+            '</select>',
+          '</label>'
+        ].join(""),
       '</div>',
       '<div class="metrics qa-summary-metrics">',
         metric("AVERAGE QA SCORE", pct(s.score), s.scoredCalls + " scored calls",
@@ -96,7 +99,7 @@ export function renderDashboardSummary(calls, selectedAgent = "") {
         '<div><strong>Coverage</strong> = how much applicable rubric weight had sufficient evidence.</div>',
         '<div>Always interpret the two together. Unverifiable findings contribute no points and no penalties.</div>',
       '</div>',
-      '<div class="qa-agent-grid">', cards || '<div class="empty">Import and evaluate calls to see agent scorecards.</div>', '</div>',
+      '<div class="qa-agent-grid">', cards || '<div class="empty">'+(agentView?'No completed QA assessments available yet.':'Import and evaluate calls to see agent scorecards.')+'</div>', '</div>',
     '</section>'
   ].join("");
 }

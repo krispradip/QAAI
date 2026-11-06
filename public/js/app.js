@@ -159,9 +159,9 @@ function render() {
       : state.page === "portfolio" ? renderDirectorPortfolio(state.calls,state.directorBU||"all",state.directorBrand||"all")
       : state.page === "admin" ? renderDemoAdmin(demoUsers(),readUsage(),scopedCalls,state.apiStatus||"Not checked")
       : state.page === "overview"
-        ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period))
+        ? overview(applyPeriod(scopedCalls,state.period).calls,state.rubric,user.role==="agent"?user.agent:state.overviewAgent,state.period,applyPeriod(scopedCalls,state.period),{personaRole:user.role,allowClearHistory:user.role==="admin"})
       : state.page === "studio" ? studio({...state,calls:scopedCalls,selected:scopedCalls.some(c=>c.key===state.selected)?state.selected:null})
-      : state.page === "agents" ? agentsView({...state,calls:scopedCalls})
+      : state.page === "agents" ? agentsView({...state,calls:scopedCalls,personaRole:user.role})
       : configShell(state.configTab,
               state.configTab === "rubric"
                 ? configuration(state.rubric,state.criterion)
@@ -243,7 +243,13 @@ function notify(message, error = false) {
 
 function navigate(page) {
   if (state.running) return;
-  if(!canViewPage(activeDemoUser(),page)){notify("This page is outside the selected demo role.",true);return;}
+  const current=activeDemoUser();
+  if(!canViewPage(current,page)){notify("This page is outside the selected demo role.",true);return;}
+  if(current.role==="agent" && page==="agents" && !state.selected){
+    const completed=scopedDemoCalls(current,state.calls);
+    state.selected=completed.at(-1)?.key||null;
+    state.agentFilter=current.agent;
+  }
   if (state.page === "config" && page !== "config" && !captureCriterionDraft()) return;
 
 
@@ -416,7 +422,7 @@ function paintProgress() {
 async function run(scope = "ready") {
   if (state.running) return;
   const demoUser=activeDemoUser();
-  if(!canEvaluate(demoUser)){notify("Only the demo BU Lead and Admin can run evaluations.",true);return;}
+  if(!canEvaluate(demoUser)){notify("Only the BU Lead, CC Director and Platform Admin can run evaluations.",true);return;}
 
   const evaluable = c => c && ["READY", "ERROR", "COMPLETE"].includes(c.status)&&scopedDemoCalls(demoUser,[c]).length===1;
   const target = scope === "all"
@@ -425,7 +431,7 @@ async function run(scope = "ready") {
       ? state.calls.filter(c => c.agent === state.agentFilter && evaluable(c))
       : scope === "selected"
         ? [state.calls.find(c => c.key === state.selected)].filter(evaluable)
-        : state.calls.filter(c => c.status === "READY");
+        : state.calls.filter(c => c.status === "READY" && evaluable(c));
 
   if (!target.length) {
     notify("No evaluable interaction selected. Check the import status and speaker mapping.", true);
@@ -782,9 +788,29 @@ document.querySelector("#nav")
   });
 
 /**
- * The persona picker lives in the fixed sidebar, outside #view.
- * Demo switching is UI behavior only, never a security boundary.
+ * Sidebar Logout is outside #view. Attach to its own stable container
+ * (the root click delegate cannot receive sidebar events).
  */
+const sessionPanel = document.querySelector("#qa-demo-persona");
+sessionPanel?.addEventListener?.("click", event => {
+  const logout = event.target.closest?.("#qa-demo-logout");
+  if(!logout) return;
+  event.preventDefault?.();
+  if(state.running) {
+    notify("Finish or stop the current evaluation before logging out.",true);
+    return;
+  }
+  logoutDemoUser();
+  state.selected=null;
+  state.agentFilter="";
+  state.overviewAgent="";
+  state.resultTab="scorecard";
+  state.page="overview";
+  state.search="";
+  render();
+  scrollPageToTop(window,document);
+});
+
 
 /**
  * Dynamic button and row actions.
@@ -799,10 +825,6 @@ root.addEventListener("click", async event => {
     const el=root.querySelector("#qa-login-email");
     if(el)el.value=button.dataset.fillDemoEmail;
     return;
-  }
-  if(button.id==="qa-demo-logout"){
-    if(state.running){notify("Finish the current evaluation before logging out.",true);return;}
-    logoutDemoUser();state.selected=null;state.agentFilter="";state.overviewAgent="";render();return;
   }
   if(button.dataset.directorShare!==undefined){
     state.agentFilter="";state.selected=null;navigate("agents");return;
