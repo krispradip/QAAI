@@ -1,0 +1,636 @@
+[
+  {
+    "id": "SAMPLE-SHARE-HASSAN-001",
+    "interactionId": "SAMPLE-SHARE-HASSAN-001",
+    "agent": "Hassan Aly",
+    "businessUnit": "SHARE",
+    "brand": "SHARE",
+    "type": "Call",
+    "duration": "02:00",
+    "start": "2026-11-05T10:08:00+04:00",
+    "key": "interaction:sample-share-hassan-001",
+    "status": "COMPLETE",
+    "source": "synthetic_presentation",
+    "sampleData": true,
+    "assessedAt": "2026-11-05T10:08:00+04:00",
+    "score": {
+      "score": 94,
+      "coverage": 85,
+      "observedScore": 100
+    },
+    "ruleAssessment": {
+      "observedScore": 100,
+      "coverage": 100
+    },
+    "turns": [
+      {
+        "line": 1,
+        "speaker": "agent",
+        "text": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?",
+        "timestamp": "00:02",
+        "seconds": 2
+      },
+      {
+        "line": 2,
+        "speaker": "customer",
+        "text": "I could not find my points after a purchase yesterday.",
+        "timestamp": "00:12",
+        "seconds": 12
+      },
+      {
+        "line": 3,
+        "speaker": "agent",
+        "text": "I'm sorry about the missing points. I understand that can be frustrating.",
+        "timestamp": "00:21",
+        "seconds": 21
+      },
+      {
+        "line": 4,
+        "speaker": "customer",
+        "text": "Thank you, I was not sure what to do next.",
+        "timestamp": "00:39",
+        "seconds": 39
+      },
+      {
+        "line": 5,
+        "speaker": "agent",
+        "text": "You can review the transaction details in your account and contact support for a case review.",
+        "timestamp": "00:49",
+        "seconds": 49
+      },
+      {
+        "line": 6,
+        "speaker": "customer",
+        "text": "That helps, thank you.",
+        "timestamp": "01:16",
+        "seconds": 76
+      },
+      {
+        "line": 7,
+        "speaker": "agent",
+        "text": "Thank you for contacting SHARE. Have a great day.",
+        "timestamp": "01:45",
+        "seconds": 105
+      }
+    ],
+    "findings": [
+      {
+        "id": "greet7",
+        "status": "SCORED",
+        "score": 100,
+        "coverage": 100,
+        "reason": "Greeting appears within the configured opening window",
+        "anchors": [
+          {
+            "id": "greet7-1",
+            "text": "Greeting begins within seven seconds",
+            "state": "MET",
+            "method": "quantitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "opening",
+        "status": "SCORED",
+        "score": 100,
+        "coverage": 100,
+        "reason": "Clear SHARE greeting, professional introduction and invitation",
+        "anchors": [
+          {
+            "id": "opening-1",
+            "text": "Identifies SHARE or the service appropriately",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?"
+              }
+            ]
+          },
+          {
+            "id": "opening-2",
+            "text": "Introduces the agent or provides a professional identity",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "This is Hassan speaking."
+              }
+            ]
+          },
+          {
+            "id": "opening-3",
+            "text": "Invites the customer to explain the reason for contact",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "How may I help you?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empathy",
+        "status": "SCORED",
+        "score": 100,
+        "coverage": 100,
+        "reason": "Concern is supported by the dialogue",
+        "anchors": [
+          {
+            "id": "empathy-1",
+            "text": "Recognises expressed difficulty or emotion",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 3,
+                "quote": "I'm sorry about the missing points. I understand that can be frustrating."
+              }
+            ]
+          },
+          {
+            "id": "empathy-2",
+            "text": "Acknowledges the impact on the customer",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 3,
+                "quote": "I'm sorry about the missing points. I understand that can be frustrating."
+              }
+            ]
+          },
+          {
+            "id": "empathy-3",
+            "text": "Responds with contextually appropriate concern",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 3,
+                "quote": "I'm sorry about the missing points. I understand that can be frustrating."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "assessmentCriteria": [
+      {
+        "id": "opening",
+        "group": "OPENING",
+        "name": "Call opening – introduction",
+        "mode": "ai",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": [
+          {
+            "id": "opening-1",
+            "text": "Identifies SHARE or the service appropriately",
+            "enabled": true
+          },
+          {
+            "id": "opening-2",
+            "text": "Introduces the agent or provides a professional identity",
+            "enabled": true
+          },
+          {
+            "id": "opening-3",
+            "text": "Invites the customer to explain the reason for contact",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "empathy",
+        "group": "LISTENING SKILLS",
+        "name": "Empathy and showing concern",
+        "mode": "ai",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": [
+          {
+            "id": "empathy-1",
+            "text": "Recognises expressed difficulty or emotion",
+            "enabled": true
+          },
+          {
+            "id": "empathy-2",
+            "text": "Acknowledges the impact on the customer",
+            "enabled": true
+          },
+          {
+            "id": "empathy-3",
+            "text": "Responds with contextually appropriate concern",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "greet7",
+        "group": "OPENING",
+        "name": "Greeting within 7 seconds",
+        "mode": "timing",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": []
+      }
+    ],
+    "meta": {
+      "source": "synthetic_presentation",
+      "model": "Presentation fixture (no AI API request)",
+      "rubricRevision": 1,
+      "criteria": [
+        {
+          "id": "opening",
+          "group": "OPENING",
+          "name": "Call opening – introduction",
+          "mode": "ai",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": [
+            {
+              "id": "opening-1",
+              "text": "Identifies SHARE or the service appropriately",
+              "enabled": true
+            },
+            {
+              "id": "opening-2",
+              "text": "Introduces the agent or provides a professional identity",
+              "enabled": true
+            },
+            {
+              "id": "opening-3",
+              "text": "Invites the customer to explain the reason for contact",
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "empathy",
+          "group": "LISTENING SKILLS",
+          "name": "Empathy and showing concern",
+          "mode": "ai",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": [
+            {
+              "id": "empathy-1",
+              "text": "Recognises expressed difficulty or emotion",
+              "enabled": true
+            },
+            {
+              "id": "empathy-2",
+              "text": "Acknowledges the impact on the customer",
+              "enabled": true
+            },
+            {
+              "id": "empathy-3",
+              "text": "Responds with contextually appropriate concern",
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "greet7",
+          "group": "OPENING",
+          "name": "Greeting within 7 seconds",
+          "mode": "timing",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": []
+        }
+      ]
+    },
+    "aiTelemetry": {
+      "requests": [],
+      "inputTokens": null,
+      "outputTokens": null,
+      "totalTokens": null,
+      "failedStage": null
+    }
+  },
+  {
+    "id": "SAMPLE-SHARE-HASSAN-002",
+    "interactionId": "SAMPLE-SHARE-HASSAN-002",
+    "agent": "Hassan Aly",
+    "businessUnit": "SHARE",
+    "brand": "SHARE",
+    "type": "Call",
+    "duration": "02:00",
+    "start": "2026-11-04T14:20:00+04:00",
+    "key": "interaction:sample-share-hassan-002",
+    "status": "COMPLETE",
+    "source": "synthetic_presentation",
+    "sampleData": true,
+    "assessedAt": "2026-11-04T14:20:00+04:00",
+    "score": {
+      "score": 86,
+      "coverage": 73,
+      "observedScore": 100
+    },
+    "ruleAssessment": {
+      "observedScore": 100,
+      "coverage": 100
+    },
+    "turns": [
+      {
+        "line": 1,
+        "speaker": "agent",
+        "text": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?",
+        "timestamp": "00:04",
+        "seconds": 4
+      },
+      {
+        "line": 2,
+        "speaker": "customer",
+        "text": "I need to update my registered mobile number.",
+        "timestamp": "00:12",
+        "seconds": 12
+      },
+      {
+        "line": 3,
+        "speaker": "agent",
+        "text": "I can guide you through the profile update steps.",
+        "timestamp": "00:21",
+        "seconds": 21
+      },
+      {
+        "line": 4,
+        "speaker": "customer",
+        "text": "Thank you, I was not sure what to do next.",
+        "timestamp": "00:39",
+        "seconds": 39
+      },
+      {
+        "line": 5,
+        "speaker": "agent",
+        "text": "First, open your profile settings. The team can confirm the verification requirements for your account.",
+        "timestamp": "00:49",
+        "seconds": 49
+      },
+      {
+        "line": 6,
+        "speaker": "customer",
+        "text": "That helps, thank you.",
+        "timestamp": "01:16",
+        "seconds": 76
+      },
+      {
+        "line": 7,
+        "speaker": "agent",
+        "text": "Thank you for calling SHARE. Goodbye.",
+        "timestamp": "01:45",
+        "seconds": 105
+      }
+    ],
+    "findings": [
+      {
+        "id": "greet7",
+        "status": "SCORED",
+        "score": 100,
+        "coverage": 100,
+        "reason": "Greeting appears within the configured opening window",
+        "anchors": [
+          {
+            "id": "greet7-1",
+            "text": "Greeting begins within seven seconds",
+            "state": "MET",
+            "method": "quantitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "opening",
+        "status": "SCORED",
+        "score": 100,
+        "coverage": 100,
+        "reason": "Clear SHARE greeting, professional introduction and invitation",
+        "anchors": [
+          {
+            "id": "opening-1",
+            "text": "Identifies SHARE or the service appropriately",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "Thank you for calling SHARE. This is Hassan speaking. How may I help you?"
+              }
+            ]
+          },
+          {
+            "id": "opening-2",
+            "text": "Introduces the agent or provides a professional identity",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "This is Hassan speaking."
+              }
+            ]
+          },
+          {
+            "id": "opening-3",
+            "text": "Invites the customer to explain the reason for contact",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 1,
+                "quote": "How may I help you?"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "empathy",
+        "status": "SCORED",
+        "score": 67,
+        "coverage": 67,
+        "reason": "Only limited empathy evidence appears",
+        "anchors": [
+          {
+            "id": "empathy-1",
+            "text": "Recognises expressed difficulty or emotion",
+            "state": "UNKNOWN",
+            "method": "qualitative",
+            "evidence": []
+          },
+          {
+            "id": "empathy-2",
+            "text": "Acknowledges the impact on the customer",
+            "state": "UNKNOWN",
+            "method": "qualitative",
+            "evidence": []
+          },
+          {
+            "id": "empathy-3",
+            "text": "Responds with contextually appropriate concern",
+            "state": "MET",
+            "method": "qualitative",
+            "evidence": [
+              {
+                "line": 3,
+                "quote": "I can guide you through the profile update steps."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "assessmentCriteria": [
+      {
+        "id": "opening",
+        "group": "OPENING",
+        "name": "Call opening – introduction",
+        "mode": "ai",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": [
+          {
+            "id": "opening-1",
+            "text": "Identifies SHARE or the service appropriately",
+            "enabled": true
+          },
+          {
+            "id": "opening-2",
+            "text": "Introduces the agent or provides a professional identity",
+            "enabled": true
+          },
+          {
+            "id": "opening-3",
+            "text": "Invites the customer to explain the reason for contact",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "empathy",
+        "group": "LISTENING SKILLS",
+        "name": "Empathy and showing concern",
+        "mode": "ai",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": [
+          {
+            "id": "empathy-1",
+            "text": "Recognises expressed difficulty or emotion",
+            "enabled": true
+          },
+          {
+            "id": "empathy-2",
+            "text": "Acknowledges the impact on the customer",
+            "enabled": true
+          },
+          {
+            "id": "empathy-3",
+            "text": "Responds with contextually appropriate concern",
+            "enabled": true
+          }
+        ]
+      },
+      {
+        "id": "greet7",
+        "group": "OPENING",
+        "name": "Greeting within 7 seconds",
+        "mode": "timing",
+        "enabled": true,
+        "weight": 5,
+        "checkpoints": []
+      }
+    ],
+    "meta": {
+      "source": "synthetic_presentation",
+      "model": "Presentation fixture (no AI API request)",
+      "rubricRevision": 1,
+      "criteria": [
+        {
+          "id": "opening",
+          "group": "OPENING",
+          "name": "Call opening – introduction",
+          "mode": "ai",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": [
+            {
+              "id": "opening-1",
+              "text": "Identifies SHARE or the service appropriately",
+              "enabled": true
+            },
+            {
+              "id": "opening-2",
+              "text": "Introduces the agent or provides a professional identity",
+              "enabled": true
+            },
+            {
+              "id": "opening-3",
+              "text": "Invites the customer to explain the reason for contact",
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "empathy",
+          "group": "LISTENING SKILLS",
+          "name": "Empathy and showing concern",
+          "mode": "ai",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": [
+            {
+              "id": "empathy-1",
+              "text": "Recognises expressed difficulty or emotion",
+              "enabled": true
+            },
+            {
+              "id": "empathy-2",
+              "text": "Acknowledges the impact on the customer",
+              "enabled": true
+            },
+            {
+              "id": "empathy-3",
+              "text": "Responds with contextually appropriate concern",
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "id": "greet7",
+          "group": "OPENING",
+          "name": "Greeting within 7 seconds",
+          "mode": "timing",
+          "enabled": true,
+          "weight": 5,
+          "checkpoints": []
+        }
+      ]
+    },
+    "aiTelemetry": {
+      "requests": [],
+      "inputTokens": null,
+      "outputTokens": null,
+      "totalTokens": null,
+      "failedStage": null
+    }
+  }
+]
