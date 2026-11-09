@@ -1,4 +1,5 @@
 import { DETERMINISTIC_RULES, linkedRules } from "./config.js";
+import {recognizeSemanticCheckpoints,unresolvedModelCriteria} from "./semantic-assessment.js";
 /**
  * QA-ENGINE-001 | Qualis v2.2.0
  *
@@ -270,9 +271,9 @@ export function calculateCriterion(
 
     return {
       ...a,
-      method:"qualitative",
+      method:b.method==="semantic-equivalence"?"semantic-equivalence":"qualitative",
       validation:b.validation || null,
-      reason:b.validation?.status==="UNVERIFIED" ? b.validation.reason : undefined,
+      reason:b.validation?.status==="UNVERIFIED" ? b.validation.reason : b.reason,
 
       state:
         ["MET", "MISSED"].includes(state) &&
@@ -474,8 +475,24 @@ export async function assess(
   onStage("rules", call);
 
   const ai = enabled.filter(c => c.checkpoints?.some(a=>a.enabled!==false));
-
-  if (ai.length) {
+  // Opt-in only: official published baselines retain current scoring behavior
+  // until the semantic pilot is tested and explicitly activated.
+  const semanticEnabled=rubric.optimization?.semanticFirst===true;
+  const recognized=semanticEnabled
+    ?recognizeSemanticCheckpoints(call,ai,referenceContext.entries||[])
+    :new Map();
+  const pending=semanticEnabled?unresolvedModelCriteria(ai,recognized):ai;
+  const skipped=[...recognized.values()].reduce((sum,arr)=>sum+arr.length,0);
+  call.semanticAudit={enabled:semanticEnabled,recognizedCheckpoints:skipped,
+    pendingModelCheckpoints:pending.reduce((sum,c)=>sum+c.checkpoints.length,0),
+    method:"approved-phrase-equivalence-v1",vectorSearch:false};
+  const mergeEvidence=(criterion,reported)=>{
+    const localSemantic=recognized.get(criterion.id)||[];
+    const semanticIDs=new Set(localSemantic.map(a=>a.id));
+    return {id:criterion.id,reason:reported?.reason||"Approved phrase evidence",
+      anchors:[...(reported?.anchors||[]).filter(a=>!semanticIDs.has(a.id)),...localSemantic]};
+  };
+  if (pending.length) {
     onStage("ai", call);
 
     const response = await fetch(
@@ -493,7 +510,7 @@ export async function assess(
           instructions: rubric.instructions,
           references: referenceContext.entries || [],
 
-          criteria: ai.map(c => ({
+          criteria: pending.map(c => ({
             id: c.id,
             name: c.name,
             definition: c.definition,
@@ -538,7 +555,7 @@ export async function assess(
 
     call.findings = enabled.map(c =>
       c.checkpoints?.some(a=>a.enabled!==false)
-        ? combineCriterion(c, calculateCriterion(c,returned.get(c.id)), checksById.get(c.id))
+        ? combineCriterion(c,calculateCriterion(c,mergeEvidence(c,returned.get(c.id))),checksById.get(c.id))
         : local.get(c.id)
     );
 
@@ -548,6 +565,12 @@ export async function assess(
     );
   }
 
+  if (semanticEnabled&&!pending.length&&skipped) {
+    call.findings=enabled.map(c=>c.checkpoints?.some(a=>a.enabled!==false)
+      ?combineCriterion(c,calculateCriterion(c,mergeEvidence(c,null)),checksById.get(c.id))
+      :local.get(c.id));
+    call.score=overall(call.findings,rubric);
+  }
   call.status = "COMPLETE";
   call.error = "";
 
@@ -560,6 +583,7 @@ export async function assess(
     referenceRevision: referenceContext.revision ?? null,
     referenceSources: [...new Set((referenceContext.entries||[]).map(r=>r.source))],
     referenceEntriesUsed: (referenceContext.entries||[]).length,
+    semanticAudit:call.semanticAudit,
     model: rubric.model,
     version: rubric.version,
     at: new Date().toISOString(),

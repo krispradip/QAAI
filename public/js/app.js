@@ -36,6 +36,7 @@ import {
 import { loadHistory, saveHistory, mergeImported, clearHistory, removeHistoryKeys } from "./history.js";
 import { applyPeriod } from "./reporting.js";
 import {loadReferenceLibrary, saveReferenceLibrary, importReferenceDataset, toggleReferenceDataset, deleteReferenceDataset, csvTemplate, activeReferenceEntries, normalizeReferenceLibrary} from "./reference.js";
+import {rankedReferenceEntries} from "./retrieval.js";
 import {configShell, referenceLibraryView} from "./reference-ui.js";
 import { scrollPageToTop } from "./navigation.js";
 import { progressLabels, readProgress, saveProgress, clearProgress } from "./progress.js";
@@ -535,8 +536,10 @@ async function run(scope = "ready") {
       const attemptId = "gemini-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9);
       const snapshot = clone(publishedBUrubric(call.businessUnit||"SHARE",state.rubric));
       const activeCriteria = snapshot.criteria.filter(c => c.enabled === true);
-      const contextCall = { ...call, businessUnit: call.businessUnit || "SHARE" };
-      const selectedReferences = activeReferenceEntries(referenceSnapshot, contextCall, activeCriteria);
+      const contextCall = { ...call, businessUnit:call.businessUnit || (snapshot.optimization?.rankedRetrieval===true ? "" : "SHARE") };
+      const selectedReferences = snapshot.optimization?.rankedRetrieval===true
+        ?rankedReferenceEntries(referenceSnapshot,contextCall,activeCriteria)
+        :activeReferenceEntries(referenceSnapshot,contextCall,activeCriteria);
       const byReference = new Map();
       for (const entry of selectedReferences) {
         const key = String(entry.source||"") + "|" + String(entry.version||"");
@@ -898,7 +901,9 @@ root.addEventListener("click", async event => {
     const testCall=clone(source);testCall.status="READY";testCall.findings=[];testCall.score=null;testCall.error="";
     const snapshot=clone(editingRubric()),refs=clone(editingReferences());
     const active=snapshot.criteria.filter(c=>c.enabled);
-    const contextual=activeReferenceEntries(refs,{...testCall,businessUnit:state.governanceBU},active);
+    const contextual=snapshot.optimization?.rankedRetrieval===true
+      ?rankedReferenceEntries(refs,{...testCall,businessUnit:state.governanceBU},active)
+      :activeReferenceEntries(refs,{...testCall,businessUnit:state.governanceBU},active);
     state.running=true;notify("Testing working rubric. Official scores will not be modified.");
     try{await assess(testCall,snapshot,new AbortController().signal,()=>{}, {revision:refs.revision,entries:contextual});
       state.previewCall=testCall;
@@ -1144,6 +1149,8 @@ root.addEventListener("click", async event => {
     const globalInstructions = root.querySelector("#global");
     if (model) editingRubric().model = model.value;
     if (globalInstructions) editingRubric().instructions = globalInstructions.value;
+    editingRubric().optimization={semanticFirst:root.querySelector("#qa-opt-semantic")?.checked===true,
+      rankedRetrieval:root.querySelector("#qa-opt-retrieval")?.checked===true};
     for (const input of root.querySelectorAll("[data-phrase-list]")) {
       editingRubric().rules[input.dataset.phraseList] = input.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
     }
@@ -1216,6 +1223,17 @@ root.addEventListener(
   "change",
   async event => {
     const target = event.target;
+    if(target.id==="qa-opt-semantic"||target.id==="qa-opt-retrieval"){
+      if(!canConfigureBU(activeDemoUser(),state.governanceBU))return;
+      if(!captureCriterionDraft())return;
+      const rubric=editingRubric();
+      rubric.optimization={semanticFirst:rubric.optimization?.semanticFirst===true,
+        rankedRetrieval:rubric.optimization?.rankedRetrieval===true};
+      rubric.optimization[target.id==="qa-opt-semantic"?"semanticFirst":"rankedRetrieval"]=target.checked===true;
+      saveWorkingConfig(activeDemoUser(),state.governanceBU,state.working);
+      render();notify("Optimization setting saved to working rubric. Test before publishing.");
+      return;
+    }
     if(target.id==="qa-demo-user"){
       if(state.running){notify("Switch personas after evaluation completes.",true);render();return;}
       try{chooseDemoUser(target.value);const user=activeDemoUser();

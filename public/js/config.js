@@ -399,6 +399,7 @@ export function defaultRubric() {
     version: "2.2.0",
     revision: 1,
     model: "gemini-3.5-flash-lite",
+    optimization:{semanticFirst:false,rankedRetrieval:false},
 
     instructions:
       "Evaluate the configured checkpoint meaning, not literal keyword spelling. " +
@@ -489,6 +490,10 @@ export function loadRubric() {
       ].includes(saved.model)
         ? saved.model : fresh.model,
 
+      optimization:{
+        semanticFirst:saved.optimization?.semanticFirst===true,
+        rankedRetrieval:saved.optimization?.rankedRetrieval===true
+      },
       instructions:
         typeof saved.instructions === "string"
           ? saved.instructions
