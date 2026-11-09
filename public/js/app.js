@@ -536,7 +536,7 @@ async function run(scope = "ready") {
       const attemptId = "gemini-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,9);
       const snapshot = clone(publishedBUrubric(call.businessUnit||"SHARE",state.rubric));
       const activeCriteria = snapshot.criteria.filter(c => c.enabled === true);
-      const contextCall = { ...call, businessUnit: call.businessUnit || "SHARE" };
+      const contextCall = { ...call, businessUnit:call.businessUnit || (snapshot.optimization?.rankedRetrieval===true ? "" : "SHARE") };
       const selectedReferences = snapshot.optimization?.rankedRetrieval===true
         ?rankedReferenceEntries(referenceSnapshot,contextCall,activeCriteria)
         :activeReferenceEntries(referenceSnapshot,contextCall,activeCriteria);
