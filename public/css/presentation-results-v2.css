@@ -135,3 +135,28 @@
 .pb-gap-title span,.pb-gap-list small{font-size:10px;color:#73849e}
 .pb-gap-list p{margin:7px 0;color:#566b88;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
 @media(max-width:720px){.pb-gap-list{grid-template-columns:1fr}}
+
+/* Concise interaction summary: identity -> competency/evidence -> combined QA. */
+.pb-competency-overview{background:#fbfdff;border:1px solid #dde7f7;border-radius:12px;padding:12px 15px;margin:9px 0 12px}
+.pb-competency-overview .pb-summary-head{margin-bottom:8px}
+.pb-competency-columns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pb-competency-columns>div{border:1px solid #e4ebf7;background:#fff;border-radius:10px;padding:10px 12px;min-width:0}
+.pb-competency-columns h4{color:#345887;font-size:11px;margin:0 0 9px}
+.pb-competency-row{margin-bottom:9px}
+.pb-competency-row>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.pb-competency-row b{font-size:10px;color:#5c6e8b;font-weight:700}
+.pb-competency-row span{font-size:10px;color:#476b98;white-space:nowrap}
+.pb-competency-track{height:6px;background:#eaf0f9;overflow:hidden;border-radius:30px}
+.pb-competency-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#6372dd,#35bcd1)}
+.pb-highlights{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.pb-highlights li{display:flex;gap:8px;align-items:flex-start;min-width:0}
+.pb-highlights li>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pb-highlights li b{font-size:10px;color:#436184;font-weight:700;line-height:1.4}
+.pb-highlights li small{color:#8596b0;font-size:9px}
+.pb-evidence-indicator{font-size:11px;font-weight:850;border-radius:50%;height:18px;width:18px;display:inline-grid;place-items:center;flex:none;background:#e8f8ee;color:#16845e}
+.pb-evidence-indicator.missed{background:#ffeaed;color:#b73951}
+.pb-usage-attempt{border:1px solid #dce6f6;border-radius:10px;padding:10px 12px;margin:8px 0;background:#fff}
+.pb-usage-attempt>summary{cursor:pointer;color:#3d5a89;font-weight:600;font-size:11px;line-height:1.6}
+.pb-usage-attempt .pb-usage-metrics{margin:12px 0 8px}
+.pb-usage-attempt .pb-table{overflow-x:auto}
+@media(max-width:720px){.pb-competency-columns{grid-template-columns:1fr}}
