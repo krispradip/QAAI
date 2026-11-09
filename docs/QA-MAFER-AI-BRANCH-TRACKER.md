@@ -6,7 +6,7 @@ Last prepared: 2026-11-09 (UTC)
 
 | Environment | Repository / branch | Last verified baseline | Scope |
 | --- | --- | --- | --- |
-| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `7b537d9d706aff2a199bfbc543725441a8fa5595` (2026-11-09, PR #28 merged, before this tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, browser-local interaction history |
+| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `b243bc264a7e551989e98284274ad5df83df1e6f` (2026-11-09, PR #29 merged, before tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, browser-local interaction history |
 | Personal enterprise migration branch | `krispradip/QAAI` / `feature/corporate-azure-apim` | `70dee87bcd9a1f543af6bb7e5b5ef77d79b035ac` (2026-10-29 07:43 UTC) | Node + Docker + EKS hosting, company APIM / GPT-4o integration |
 | Corporate GitHub | `majidalfuttaim/customer-care` (the `QAMAFerAI` application) | **Not verified through this GitHub connection** | **PRIMARY LIVE DEMO for 26 November 2026**; corporate AWS/EKS, GPT-4o via APIM. Keep the existing corporate scoring engine and live UI as the authoritative showcase. |
 
@@ -105,6 +105,17 @@ Merged as `7b537d9d706aff2a199bfbc543725441a8fa5595` on 2026-11-09.
 - All three Actions workflows completed successfully before merge. Cloudflare live deployment and in-browser user acceptance not independently verified.
 - Technical/migration documentation: `docs/SEMANTIC-RETRIEVAL-PILOT.md`. Next enterprise step is a reviewed, incremental port and source-backed validation, **not** copying personal `main` wholesale.
 - The corporate account connection now exists but the `majidalfuttaim/customer-care` repository remains unauthorized/inaccessible via the ChatGPT GitHub App. Treat corporate branch SHAs as unknown.
+
+## Personal main — Results declutter and diagnostics relocation (PR #29)
+
+Merged on 2026-11-09 as `b243bc264a7e551989e98284274ad5df83df1e6f`.
+
+- Compact **Competency Overview & Evidence Highlights** now sits directly between the Agent Name / Interaction ID header and Combined QA Score, derived from existing scored themes and anchored evidence.
+- **Reference Provenance** is a dedicated Results tab directly after **Key Insights**. Reference file versions, selected entries and audit data remain intact.
+- The request-level token/budget/HTTP/cooldown breakdown is presented under **AI Usage & Diagnostics**, grouped by interaction (latest 50 attempt groups). It no longer appears as a Results tab, including for the Admin persona; technical usage remains restricted to Admin.
+- The Gemini Worker now logs actual configured requested output budgets alongside per-stage token reports; no model, prompt, scoring rule, reference evidence or 429 retry behavior changed.
+- Automated QA Regression Tests, Qualis import regression and Qualis stability checks all passed before merge. Corporate app and corp GPT-4o/APIM configuration were **not** changed.
+- Corporate UI migration checklist: `docs/RESULTS-UI-DECLUTTER-CORP-MIGRATION.md`. Current corporate source remains unavailable through this GitHub connector; **requires exact corporate Results and Usage component files** for safe code-level changes. Cloudflare live screen remains unverified.
 
 ## Ongoing change-control
 
