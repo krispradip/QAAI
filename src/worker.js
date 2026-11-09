@@ -247,7 +247,7 @@ Provide a result for EVERY checkpoint ID; do not omit any.`}]},
       })
     });
     const event={at:new Date().toISOString(),stage:"Independent evidence review",httpStatus:response.status,
-      retryAfterMs:response.status===429?retryAfterMs(response):null,inputTokens:null,outputTokens:null,totalTokens:null};
+      requestedOutputBudget:8192,retryAfterMs:response.status===429?retryAfterMs(response):null,inputTokens:null,outputTokens:null,totalTokens:null};
     usageTrace.push(event);
     if(!response.ok)throw Error("Reviewer unavailable");
     const body=await response.json();
@@ -643,7 +643,7 @@ Return complete JSON matching the schema.
   }
 
   const initialEvent={at:new Date().toISOString(),stage:"Initial Gemini evaluation",httpStatus:result.status,
-    retryAfterMs:result.status===429?retryAfterMs(result):null,inputTokens:null,outputTokens:null,totalTokens:null};
+    requestedOutputBudget:12288,retryAfterMs:result.status===429?retryAfterMs(result):null,inputTokens:null,outputTokens:null,totalTokens:null};
   usageTrace.push(initialEvent);
 
   if (!result.ok) {

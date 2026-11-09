@@ -1,4 +1,4 @@
-import {renderStatusTotals,renderThemeProgress,renderScoreStatus,checkpointState} from "./presentation-themes.js";
+import {renderStatusTotals,renderThemeProgress,renderScoreStatus,checkpointState,themeScores} from "./presentation-themes.js";
 /** Presentation-safe, Gemini-compatible interaction inspection.
  * Keeps rubric order and labels UNKNOWN distinctly from NOT EVALUATED.
  * No transcript leaves the browser through this renderer.
@@ -26,6 +26,38 @@ function allChecks(call,rubric) {
     const ai=definedQual.map(a=>({...a,...(existing.get(a.id)||{}),text:a.text,methodKind:"ai"}));
     return {criterion:c,finding:f,checks:[...rules,...ai]};
   });
+}
+/**
+ * Compact, factual performance summary between identity and combined QA.
+ * Full details stay in the Scorecard/Key Insights tabs.
+ */
+export function renderCompetencyHighlights(call,rubric){
+  const themes=themeScores(call,rubric).filter(x=>Number.isFinite(x.finalScore)||Number.isFinite(x.observedScore));
+  const displayed=themes.slice(0,4);
+  const bars=displayed.map(row=>{
+    const value=row.finalScore??row.observedScore;
+    return '<div class="pb-competency-row"><div><b>'+escapeHtml(row.name)+'</b><span>'+pct(value)+(row.finalScore===null?' · observed':'')+'</span></div>'+
+      '<div class="pb-competency-track" role="progressbar" aria-label="'+escapeHtml(row.name)+' quality score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+value+'"><i style="width:'+value+'%"></i></div></div>';
+  }).join("");
+  const highlights=allChecks(call,rubric).flatMap(({criterion,finding,checks})=>
+    checks.map(check=>({criterion,finding,check})))
+    .filter(({criterion,finding,check})=>["MET","MISSED"].includes(checkpointState(check,call,criterion,finding))&&
+      Array.isArray(check.evidence)&&check.evidence.length)
+    .slice(0,3);
+  const insights=highlights.map(({criterion,finding,check})=>{
+    const status=checkpointState(check,call,criterion,finding);
+    return '<li><span class="pb-evidence-indicator '+(status==="MET"?"met":"missed")+'">'+(status==="MET"?"✓":"!")+'</span>'+
+      '<div><b>'+escapeHtml(check.text||criterion.name)+'</b><small>'+escapeHtml(criterion.group||"")+
+      ' · Line '+escapeHtml(check.evidence[0]?.line??"—")+'</small></div></li>';
+  }).join("");
+  return '<section class="pb-competency-overview" aria-label="Competency overview and evidence highlights">'+
+    '<div class="pb-summary-head"><b>COMPETENCY OVERVIEW &amp; EVIDENCE HIGHLIGHTS</b></div>'+
+    '<div class="pb-competency-columns"><div><h4>Core competencies</h4>'+
+    (bars||'<p class="pb-note">No verified competency score available yet.</p>')+
+    (themes.length>displayed.length?'<small class="pb-note">'+(themes.length-displayed.length)+' additional themes available under Scorecard.</small>':"")+
+    '</div><div><h4>Key insights · evaluated evidence</h4>'+
+    (insights?'<ul class="pb-highlights">'+insights+'</ul>':'<p class="pb-note">No evidence-backed highlights available yet.</p>')+
+    '</div></div></section>';
 }
 function tiles(call) {
   const rule=call.ruleAssessment || {};
@@ -125,18 +157,6 @@ function transcript(call,scope) {
   return '<section class="pb-transcript"><div class="pb-heading"><h3>Evidence-linked transcript</h3><span>'+turns.length+' of '+(call.turns||[]).length+' turns</span></div><div class="pb-filter">'+options+'</div>'+
     (rows||'<p class="pb-empty">No tagged transcript lines for this selection. The full transcript is unchanged.</p>')+'</section>';
 }
-function diagnostics(call) {
-  const trace=call.aiTelemetry||{};
-  const req=trace.requests||[];
-  const events=trace.stages||[];
-  const row=x=>'<tr><td>'+datetime(x.at||x.time)+'</td><td>'+escapeHtml(x.stage||"Gemini")+'</td><td>'+escapeHtml(x.httpStatus||x.status||"—")+'</td><td>'+number(x.inputTokens??x.promptTokens)+'</td><td>'+number(x.outputTokens??x.completionTokens)+'</td><td>'+number(x.totalTokens)+'</td><td>'+ (Number.isFinite(x.retryAfterMs)?Math.ceil(x.retryAfterMs/1000)+"s":"—")+'</td></tr>';
-  return '<section class="pb-panel"><h3>AI Evaluation Diagnostics</h3><p>Provider: Gemini · Timezone: Gulf Standard Time (UTC+4)</p>'+
-    '<div class="pb-metrics"><article><small>INPUT TOKENS</small><strong>'+number(trace.inputTokens)+'</strong></article><article><small>OUTPUT TOKENS</small><strong>'+number(trace.outputTokens)+'</strong></article><article><small>REPORTED TOTAL</small><strong>'+number(trace.totalTokens)+'</strong></article></div>'+
-    '<p>'+escapeHtml(trace.failedStage?"Failed stage: "+trace.failedStage:"Assessment status: "+call.status)+'</p>'+
-    (events.length?'<ul class="pb-events">'+events.map(e=>'<li><b>'+escapeHtml(e.stage||e.name)+'</b> · '+escapeHtml(e.status||"")+' '+datetime(e.at)+'</li>').join("")+'</ul>':"")+
-    '<div class="pb-table"><table><thead><tr><th>Time (GST)</th><th>Stage</th><th>HTTP</th><th>Input</th><th>Output</th><th>Total</th><th>Cooldown</th></tr></thead><tbody>'+req.map(row).join("")+'</tbody></table></div>'+
-    (!req.length?'<p class="pb-note">No request telemetry recorded for this assessment. Earlier runs cannot be reconstructed.</p>':"")+'</section>';
-}
 function references(call) {
   const audit=call.referenceAudit||null;
   const files=audit?.files||[];
@@ -149,16 +169,15 @@ function references(call) {
 }
 export function renderPresentationInspection(call,rubric,tab="scorecard",filter="all",evidenceView="all",options={}) {
   if(!call)return '<p class="pb-empty">Select an interaction to inspect.</p>';
-  const tabs=[["scorecard","Scorecard"],["transcript","Transcript"],["timeline","Agent timeline"],["insights","Key insights"],
-    ...(options.allowDiagnostics===true?[["diagnostics","AI Diagnostics"]]:[]),["references","References"]];
+  const tabs=[["scorecard","Scorecard"],["transcript","Transcript"],["timeline","Agent timeline"],
+    ["insights","Key Insights"],["references","Reference Provenance"]];
   const valid=tabs.some(x=>x[0]===tab)?tab:"scorecard";
   const result=valid==="scorecard"?scorecard(call,rubric,filter):
     valid==="transcript"?transcript(call,evidenceView):
-    valid==="diagnostics"?diagnostics(call):
     valid==="references"?references(call):
     valid==="timeline"?'<section class="pb-panel"><h3>Agent timeline</h3>'+ (call.turns||[]).map(t=>'<p><b>'+escapeHtml(t.timestamp||"—")+'</b> · '+escapeHtml(t.speaker)+': '+escapeHtml(t.text)+'</p>').join("")+'</section>':
     '<section class="pb-panel"><h3>Key insights · evaluated evidence</h3>'+ (call.findings||[]).flatMap(f=>f.anchors||[]).filter(a=>(a.state==="MET"||a.state==="MISSED")&&(a.evidence||[]).length).map(a=>'<p><b>'+escapeHtml(a.text)+'</b> · '+escapeHtml(a.state)+'</p>').join("")+'</section>';
   return '<div class="pb-inspection">'+
     '<div class="pb-inspection-heading"><div><small>QUALITY INTELLIGENCE</small><h3>Evaluation Results</h3><p>'+escapeHtml(call.agent)+' · '+escapeHtml(call.id)+' · '+escapeHtml(call.duration||"")+" · "+escapeHtml(call.status)+'</p></div></div>'+
-    tiles(call)+'<div class="pb-tabs" role="tablist">'+tabs.map(x=>'<button type="button" role="tab" data-result-tab="'+x[0]+'" aria-selected="'+(x[0]===valid)+'" class="'+(x[0]===valid?"active":"")+'">'+x[1]+'</button>').join("")+'</div>'+result+'</div>';
+    renderCompetencyHighlights(call,rubric)+tiles(call)+'<div class="pb-tabs" role="tablist">'+tabs.map(x=>'<button type="button" role="tab" data-result-tab="'+x[0]+'" aria-selected="'+(x[0]===valid)+'" class="'+(x[0]===valid?"active":"")+'">'+x[1]+'</button>').join("")+'</div>'+result+'</div>';
 }
