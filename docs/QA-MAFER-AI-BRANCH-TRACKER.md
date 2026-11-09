@@ -1,12 +1,12 @@
 # QA.MAFer.AI — Personal / Enterprise Branch Change Tracker
 
-Last prepared: 2026-11-06 (UTC)
+Last prepared: 2026-11-09 (UTC)
 
 ## Authoritative locations and boundaries
 
 | Environment | Repository / branch | Last verified baseline | Scope |
 | --- | --- | --- | --- |
-| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `d9a94f9af3f74568ff8b3c6ea4ca1fa617b164ab` (2026-11-06, PR #27 merged, before this tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, browser-local interaction history |
+| Personal presentation / Gemini | `krispradip/QAAI` / `main` | `7b537d9d706aff2a199bfbc543725441a8fa5595` (2026-11-09, PR #28 merged, before this tracker update) | **Fallback for 26 November showcase**; Cloudflare personal environment, Gemini, browser-local interaction history |
 | Personal enterprise migration branch | `krispradip/QAAI` / `feature/corporate-azure-apim` | `70dee87bcd9a1f543af6bb7e5b5ef77d79b035ac` (2026-10-29 07:43 UTC) | Node + Docker + EKS hosting, company APIM / GPT-4o integration |
 | Corporate GitHub | `majidalfuttaim/customer-care` (the `QAMAFerAI` application) | **Not verified through this GitHub connection** | **PRIMARY LIVE DEMO for 26 November 2026**; corporate AWS/EKS, GPT-4o via APIM. Keep the existing corporate scoring engine and live UI as the authoritative showcase. |
 
@@ -93,6 +93,18 @@ Merged as `d9a94f9af3f74568ff8b3c6ea4ca1fa617b164ab` on 2026-11-06.
 - **Security caveat remains visible**: personal access selects an email and does not verify identity. It is not corporate authentication. Do not upload sensitive records to an unauthenticated publicly hosted personal environment.
 - All three workflows (QA.MAFer.AI Regression Tests, Qualis import regression, Qualis stability checks) succeeded before merge. Actual Cloudflare deployment/render check remains unverified.
 - Corporate GitHub and corporate AWS/APIM are **unchanged**.
+
+## Personal main — optional semantic/retrieval pilot (PR #28)
+
+Merged as `7b537d9d706aff2a199bfbc543725441a8fa5595` on 2026-11-09.
+
+- **OFF by default** in every rubric. BU Lead or Admin can enable each option in a working draft, run an isolated test, and explicitly publish if validation approves it. No change to previously published rubric revisions.
+- `semanticFirst` recognises explicit positive speech evidence for four low-risk checkpoint IDs (opening-3, assistance-1, survey-1, closing-1) using a conservative approved phrase-equivalence catalogue and enabled `semantic` reference rows. Unmatched/ambiguous checkpoints use the existing Gemini and independent validator; no automatic MISSED/NA or evidence invention.
+- `rankedRetrieval` uses a small character/entry budget to rank scoped approved reference hints by source, BU, market, channel and criterion. No embeddings, vectors, pgvector or production RAG are claimed.
+- Model-independent scoring, evidence coverage, role boundaries, reference provenance and draft/published baseline distinction remain in place. The personal fallback keeps Gemini; corporate EKS/APIM source is unchanged.
+- All three Actions workflows completed successfully before merge. Cloudflare live deployment and in-browser user acceptance not independently verified.
+- Technical/migration documentation: `docs/SEMANTIC-RETRIEVAL-PILOT.md`. Next enterprise step is a reviewed, incremental port and source-backed validation, **not** copying personal `main` wholesale.
+- The corporate account connection now exists but the `majidalfuttaim/customer-care` repository remains unauthorized/inaccessible via the ChatGPT GitHub App. Treat corporate branch SHAs as unknown.
 
 ## Ongoing change-control
 
