@@ -1007,6 +1007,13 @@ export function configuration(rubric, selected) {
         `).join("")}
       </section>
 
+      <section class="panel qa-semantic-pilot">
+        <div class="panel-heading"><div><span class="kicker">EVALUATION OPTIMIZATION</span><h3>Semantic &amp; retrieval pilot</h3></div><span class="tag">OFF BY DEFAULT</span></div>
+        <p class="muted">Test these optimizations on a working rubric before publishing. The official baseline and scoring weights do not change until explicitly published.</p>
+        <label><input type="checkbox" id="qa-opt-semantic" ${rubric.optimization?.semanticFirst===true?"checked":""}> Semantic-first checks — recognize strictly approved agent expressions for selected opening, assistance, survey and closing checkpoints. Ambiguous checks still use Gemini.</label>
+        <label><input type="checkbox" id="qa-opt-retrieval" ${rubric.optimization?.rankedRetrieval===true?"checked":""}> Ranked reference retrieval — select a smaller set of BU/market/channel-scoped reference entries rather than sending every matching hint.</label>
+        <p class="footnote">Semantic-first uses verified phrase equivalents, not vector embeddings or a general-purpose language model. Ranked retrieval is lexical and metadata-based, not full vector RAG. No extra AI calls are made by either pilot.</p>
+      </section>
       <section class="panel qa-phrase-config">
         <div class="panel-heading"><div><span class="kicker">TRANSCRIPT RULES</span><h3>Approved phrase lists</h3></div></div>
         <p class="muted">One approved phrase per line. Empty lists remain UNKNOWN. Text matching does not prove external events.</p>
