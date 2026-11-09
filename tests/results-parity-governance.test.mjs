@@ -96,17 +96,29 @@ test("persistent desktop navigation, six-count palette and responsive layout sty
  assert.match(css,/@media\(max-width:720px\)/);
  assert.match(html,/presentation-results-v2\.css/);
 });
-test("diagnostics are hidden from BU Lead results but preserved for platform admin",()=>{
- const businessTabs=["scorecard","transcript","timeline","insights","references"];
- for(const role of ["bu_lead","agent"]){
-  const html=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:false});
+test("business results keep all reference tabs without AI request diagnostics",()=>{
+ const tabs=["scorecard","transcript","timeline","insights","references"];
+ for(const role of ["bu_lead","agent","admin"]){
+  const html=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:role==="admin"});
   assert.doesNotMatch(html,/data-result-tab="diagnostics"/);
-  assert.doesNotMatch(html,/AI Evaluation Diagnostics/);
-  for(const name of businessTabs)assert.match(html,new RegExp('data-result-tab="'+name+'"'));
+  assert.doesNotMatch(html,/AI Evaluation Diagnostics|REQUESTED OUTPUT BUDGET|INPUT TOKENS/);
+  for(const name of tabs)assert.match(html,new RegExp('data-result-tab="'+name+'"'));
+  assert.ok(html.indexOf('data-result-tab="insights"')<html.indexOf('data-result-tab="references"'));
+  assert.match(html,/data-result-tab="references"[^>]*>Reference Provenance/);
  }
- const admin=renderPresentationInspection(fixture,rubric,"diagnostics","all","all",{allowDiagnostics:true});
- assert.match(admin,/data-result-tab="diagnostics"/);
- assert.match(admin,/AI Evaluation Diagnostics/);
+});
+test("competency overview sits between interaction identity and Combined QA Score",()=>{
+ const html=renderPresentationInspection(fixture,rubric,"scorecard");
+ const header=html.indexOf('pb-inspection-heading');
+ const competency=html.indexOf('pb-competency-overview');
+ const combined=html.indexOf('COMBINED QA SCORE');
+ const tabs=html.indexOf('class="pb-tabs"');
+ assert.ok(header>=0&&header<competency&&competency<combined&&combined<tabs);
+ assert.match(html,/COMPETENCY OVERVIEW &amp; EVIDENCE HIGHLIGHTS/);
+ assert.match(html,/Key insights · evaluated evidence/);
+ assert.doesNotMatch(html,/Reference Library Provenance/);
+ const reference=renderPresentationInspection(fixture,rubric,"references");
+ assert.match(reference,/Reference Library Provenance/);
 });
 test("pending 90 observed and 46 coverage explain actual unresolved criteria without creating a final QA score",()=>{
  const c={...fixture,status:"COMPLETE",score:{score:null,observedScore:90,coverage:46},
