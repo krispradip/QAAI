@@ -117,6 +117,16 @@ Merged on 2026-11-09 as `b243bc264a7e551989e98284274ad5df83df1e6f`.
 - Automated QA Regression Tests, Qualis import regression and Qualis stability checks all passed before merge. Corporate app and corp GPT-4o/APIM configuration were **not** changed.
 - Corporate UI migration checklist: `docs/RESULTS-UI-DECLUTTER-CORP-MIGRATION.md`. Current corporate source remains unavailable through this GitHub connector; **requires exact corporate Results and Usage component files** for safe code-level changes. Cloudflare live screen remains unverified.
 
+## Delivery scope decision — 2026-11-09
+
+**Evaluation-first. Login and persona work explicitly deferred.** The next corporate handoff includes only the rule + semantic + AI evaluation engine, governed retrieval/RAG integration, evidence/scoring controls and the user-approved Results + AI Usage layouts. Do **not** port login, SSO, RBAC, browser-local persona switching or user management to corporate during this phase.
+
+**Critical implementation truth:** PR #28 added only 4 opt-in phrase-equivalence checkpoints and metadata-filtered lexical retrieval, not robust general semantic inference or database-backed vector/hybrid RAG. Neither switch is on by default. Keep existing published QA behavior and corporate GPT-4o/APIM evaluation unchanged until checkpoint-accuracy and token benchmarking proves a replacement. Preserve the source evidence guardrails.
+
+**Corporate source** remains inaccessible using the current ChatGPT GitHub connection; exact corporate engine/Results/Usage files or approved extracts are required before delivering copy/paste corporate diffs. Do not overwrite working corporate modules with personal Cloudflare/Gemini code.
+
+Detailed delivery contract: `docs/EVALUATION-FIRST-CORPORATE-SCOPE.md` (2026-11-09). The personal branch tracker was updated for scope only; no login, score, rubric or corporate source files changed.
+
 ## Ongoing change-control
 
 - **Corporate primary:** prioritize UI clarity, working enterprise evaluation and graceful 429 handling for the showcase. Do not copy personal demo authentication, sample-data seeding, Gemini adapters or browser-only storage to corporate.
