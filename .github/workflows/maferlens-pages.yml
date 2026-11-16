@@ -1,0 +1,34 @@
+name: Publish MAFerLens Showcase (GitHub Pages)
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/**"
+      - ".github/workflows/maferlens-pages.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: maferlens-pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage only the static public UI
+        run: |
+          mkdir -p _site
+          cp -a public/. _site/
+          sed -i 's|href="/css/|href="./css/|g; s|src="/js/|src="./js/|g' _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
