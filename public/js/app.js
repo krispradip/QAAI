@@ -1,3 +1,5 @@
+import { makeShowcaseCalls, makeShowcaseReferences } from "./showcase-data.js";
+const showcaseMode = new URLSearchParams(window.location.search).get("maferlens_showcase")==="1";
 import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
 import {canConfigureBU,normalizeBU,isShareBU,publishedBUrubric,savePublishedBUrubric,loadWorkingConfig,saveWorkingConfig,publishBaselineEvent,agentBaselineNotifications,validateScopedDataset} from "./presentation-baseline.js";
 import {demoBusinessUnits} from "./presentation-portfolio.js";
@@ -89,6 +91,15 @@ const state = {
 
   controller: null
 };
+
+// Showcase stays isolated from IndexedDB history, real Gemini evaluation, and corporate records.
+if(showcaseMode){
+  chooseDemoUser("demo-bulead-001");
+  state.calls=makeShowcaseCalls(state.rubric);
+  state.references=makeShowcaseReferences();
+  state.period={mode:"last7",from:"",to:""};
+  state.message="Completed illustrative demo batch";
+}
 
 const titles = {
   overview: [
@@ -1493,6 +1504,69 @@ root.addEventListener("submit",event=>{
 });
 render();
 
+// Dedicated showcase interface: controlled by the adjacent showcase.html iframe only.
+// Nothing here calls the AI service or writes mock calls to IndexedDB.
+if(showcaseMode){
+  const originals=makeShowcaseCalls(state.rubric);
+  const asReady=c=>({...c,status:"READY",score:null,findings:[],ruleAssessment:null});
+  function frameState(){return {page:state.page,running:state.running,done:state.calls.filter(c=>c.status==="COMPLETE").length,total:state.calls.length};}
+  window.__MAFER_SHOWCASE__={
+    status:frameState,
+    goto(page){
+      if(!["overview","studio","agents","config"].includes(page))return false;
+      if(page==="config"){state.configTab="rubric";}
+      state.page=page;render();scrollPageToTop(window,document);return true;
+    },
+    selectAgent(name){
+      if(!originals.some(c=>c.agent===name))return false;
+      state.calls=originals.map(c=>({...c}));
+      const item=state.calls.find(c=>c.agent===name);
+      state.agentFilter=name;state.selected=item.key;state.resultTab="scorecard";
+      state.running=false;state.phase="idle";state.page="agents";
+      render();scrollPageToTop(window,document);return true;
+    },
+    upload(){
+      state.calls=originals.map(asReady);
+      state.selected=state.calls[0]?.key||null;
+      state.page="studio";state.running=false;state.phase="idle";
+      state.message="12 complete Genesys interactions imported for evaluation";
+      state.importFeedback="12 interactions imported from a full Genesys transcript export";
+      state.evalProgress=null;render();scrollPageToTop(window,document);
+      return frameState();
+    },
+    start(){
+      state.page="studio";state.running=true;state.phase="rules";
+      state.message="Applying deterministic rules and checking transcript evidence";
+      state.evalProgress={started:Date.now(),total:originals.length,completed:0,callCount:originals.length};
+      render();return frameState();
+    },
+    tick(n){
+      const done=Math.max(0,Math.min(originals.length,Math.floor(n)));
+      state.calls=originals.map((c,i)=>i<done?{...c}:asReady(c));
+      state.page="studio";state.phase=done===originals.length?"complete":"ai";
+      state.message=done===originals.length?"Evaluation completed — quality results ready":"Contextual AI assessment · evidence validation";
+      state.running=done<originals.length;
+      state.evalProgress={started:Date.now()-Math.max(3000,done*1500),total:originals.length,completed:done,callCount:originals.length,
+        ...(done===originals.length?{ended:Date.now(),outcome:"complete"}:{})};
+      render();return frameState();
+    },
+    finish(){
+      state.calls=originals.map(c=>({...c}));
+      state.running=false;state.phase="complete";state.message="Evaluation completed";
+      state.evalProgress=null;state.page="studio";render();return frameState();
+    },
+    config(tab="rubric"){
+      state.page="config";state.configTab=tab==="references"?"references":"rubric";
+      state.running=false;render();scrollPageToTop(window,document);
+      return true;
+    },
+    reset(){
+      state.calls=originals.map(c=>({...c}));state.running=false;state.phase="idle";
+      state.selected=null;state.agentFilter="";state.page="overview";state.period.mode="last7";
+      render();scrollPageToTop(window,document);
+    }
+  };
+}else{
 // Load only user-imported records. Never populate the workspace with bundled examples.
 void loadHistory().then(async calls => {
   const bundled = calls.filter(c=>
@@ -1520,3 +1594,4 @@ void loadHistory().then(async calls => {
     ?state.selected:state.calls[0]?.key||null;
   render();
 }).catch(e=>notify("Local history unavailable: "+e.message,true));
+}
