@@ -1,5 +1,5 @@
 import { makeShowcaseCalls, makeShowcaseReferences } from "./showcase-data.js";
-const showcaseMode = new URLSearchParams(window.location.search).get("maferlens_showcase")==="1";
+const showcaseMode = typeof window !== "undefined" && !!window.location && new URLSearchParams(window.location.search || "").get("maferlens_showcase")==="1";
 import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
 import {canConfigureBU,normalizeBU,isShareBU,publishedBUrubric,savePublishedBUrubric,loadWorkingConfig,saveWorkingConfig,publishBaselineEvent,agentBaselineNotifications,validateScopedDataset} from "./presentation-baseline.js";
 import {demoBusinessUnits} from "./presentation-portfolio.js";
