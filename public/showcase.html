@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MAFerLens — BU Lead Showcase</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%;width:100%;margin:0;overflow:hidden;font-family:Inter,Arial,sans-serif;background:#091830}iframe{position:fixed;inset:0;height:100%;width:100%;border:0;background:#f5f8fd}
+#splash{position:fixed;inset:0;z-index:9;background:radial-gradient(circle at 50% 50%,#2055a2,#091c3d 75%);display:grid;place-items:center;color:white;transition:opacity .6s,visibility .6s}#splash.off{opacity:0;visibility:hidden;pointer-events:none}#splash h1{font-size:clamp(50px,9vw,115px);letter-spacing:-.065em;margin:0}#splash h1 em{font-style:normal;color:#55e7eb}#splash p{text-align:center;color:#bdd8ef;letter-spacing:.13em;font-size:20px}#orb{margin:0 auto 35px;width:117px;height:117px;border-radius:50%;background:radial-gradient(circle,#27e6e8,#4776db 56%,#20358b);box-shadow:0 0 0 25px #36c8ff19,0 0 0 56px #36c8ff09,0 0 75px #31d5e37a;display:grid;place-items:center;font-size:70px;animation:bob 2.7s infinite ease-in-out}@keyframes bob{50%{transform:translateY(-8px)}}
+#cursor{position:fixed;z-index:12;opacity:0;pointer-events:none;transform:translate3d(-100px,-100px,0);transition:transform .65s cubic-bezier(.23,.75,.19,1),opacity .15s;filter:drop-shadow(0 3px 3px #0007)}#cursor.on{opacity:1}#cursor svg{height:36px;width:29px}
+#ring{position:fixed;z-index:13;width:15px;height:15px;border:2px solid #18dce8;border-radius:50%;opacity:0;pointer-events:none}#ring.tap{animation:tap .58s ease-out}@keyframes tap{0%{transform:scale(.4);opacity:1}100%{transform:scale(5);opacity:0}}
+#caption{position:fixed;bottom:76px;right:20px;z-index:10;color:#fff;background:#082b51ed;border:1px solid #72bbde77;box-shadow:0 10px 28px #0004;border-radius:12px;padding:14px 18px;max-width:465px;font-size:16px;font-weight:650;line-height:1.45;opacity:0;transition:opacity .2s}#caption.show{opacity:1}#caption small{display:block;font-size:10px;letter-spacing:.16em;color:#55e9f4;margin-bottom:5px}
+#controls{position:fixed;bottom:12px;right:12px;z-index:16;border-radius:12px;background:#091b35eb;color:#fff;display:flex;gap:5px;align-items:center;padding:7px 11px;box-shadow:0 5px 25px #0006;opacity:.25;transition:opacity .2s}#controls:hover,#controls:focus-within{opacity:1}#controls button{background:transparent;border:0;color:#fff;font-weight:850;min-width:28px;height:28px;border-radius:5px;cursor:pointer}#controls button:hover{background:#355b8e}#label{font-size:11px;min-width:110px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#progress{width:100px;height:3px;background:#38577d}#progress span{display:block;width:0;height:100%;background:#44e7ea}
+#upload{position:fixed;right:3%;top:17%;z-index:11;display:none;background:#efffff;border:1px solid #53d6e4;padding:14px;border-radius:8px;color:#144a75;font-size:12px;font-weight:750;box-shadow:0 12px 23px #0002}#upload.show{display:block}#note{position:fixed;left:11px;bottom:9px;font-size:10px;z-index:10;color:#7495b3;background:#102744b4;padding:3px 8px}#error{display:none;position:fixed;inset:0;z-index:30;background:#071a32;color:#fff;text-align:center;place-items:center}#error.show{display:grid}
+</style></head><body>
+<iframe id="app" src="./index.html?maferlens_showcase=1" title="Actual MAFerLens application"></iframe>
+<div id="splash"><div><div id="orb">✦</div><h1>MAFer<em>Lens</em></h1><p>EVERY INTERACTION. MEASURABLE QUALITY.</p><p style="font-size:12px">SHARE · BU LEAD</p></div></div>
+<div id="cursor" aria-hidden="true"><svg viewBox="0 0 27 35"><path d="M2 1 2 29 9.5 22.2 14.1 32.6 20.1 30 15.3 19.5 25.6 19.4Z" fill="#fff" stroke="#152b4a" stroke-width="2"/></svg></div><div id="ring"></div>
+<div id="upload">✓ SHARE_Genesys_complete_export.csv · 12 complete interactions</div>
+<div id="caption"><small>BU LEAD WORKFLOW</small><span id="message"></span></div>
+<div id="controls"><button id="prev" title="Previous">‹</button><button id="pause" title="Play / Pause">Ⅱ</button><button id="next" title="Next">›</button><span id="label">MAFerLens</span><div id="progress"><span></span></div><button id="speed">1×</button><button id="restart" title="Replay">↻</button><button id="fullscreen" title="Fullscreen">⛶</button></div>
+<div id="note">Original application UI · demonstration-only records · no AI calls</div>
+<div id="error"><div><h2>Unable to load MAFerLens</h2><p>The actual application needs to be deployed next to showcase.html. No substitute UI is shown.</p></div></div>
+<script>
+(function(){
+"use strict";
+var f=document.getElementById("app"),splash=document.getElementById("splash"),cursor=document.getElementById("cursor"),ring=document.getElementById("ring"),cap=document.getElementById("caption"),badge=document.getElementById("upload"),fill=document.querySelector("#progress span"),btn=document.getElementById("pause");
+var index=0,token=0,paused=false,speed=1,ready=false;
+var steps=[
+["opening",4500,"MAFerLens brings quality intelligence, evidence and coaching together."],
+["home",9000,"A BU Lead starts with last week's team and agent quality performance."],
+["low-score",8500,"Awad Osman has a finalized 50% QA score — the case we'll inspect."],
+["studio",7500,"Open the actual AI Evaluation Studio. Evaluate one complete transcript or a multi-interaction export."],
+["upload",10500,"Choose a complete Genesys transcript export. This illustrative file contains 12 full interactions."],
+["evaluate",6200,"Click Evaluate to run the batch."],
+["processing",19000,"The MAFerLens evaluator orb animates while deterministic and contextual checks are processed."],
+["complete",6500,"The batch queue updates with completed assessments and evidence coverage."],
+["agents",8000,"Review all agents and their evaluated quality scores."],
+["awad",11000,"Inspect Awad Osman's 50% combined score and evidence-linked results."],
+["evidence",10500,"Examine missed criteria, score coverage and supporting dialogue."],
+["coach",13000,"Awad missed two Further assistance closing checks."],
+["recommend",10500,"Coaching: explicitly offer further assistance and give the customer time to raise another request."],
+["hybrid",9000,"Rules perform deterministic checks. Contextual AI is used where interpretation is needed."],
+["rubric",11000,"The BU Lead reviews the SHARE 27-parameter quality rubric and its checkpoints."],
+["references",11000,"The reference library has four governed structures: variations, semantic equivalents, terminology and guidance."],
+["end",5000,"MAFerLens: measurable quality, defensible evidence, actionable coaching."]
+];
+function api(){try{return f.contentWindow.__MAFER_SHOWCASE__}catch(e){return null}}
+function doc(){try{return f.contentDocument}catch(e){return null}}
+function waitOne(t){return new Promise(function(resolve){setTimeout(resolve,t)})}
+function brand(){var d=doc();if(!d)return;var b=d.querySelector(".brand strong");if(b)b.innerHTML="MAFer<span>Lens</span>";var c=d.querySelector(".qmf-core span");if(c)c.textContent="MAFerLens";var h=d.querySelector(".hero .eyebrow");if(h)h.textContent="MAFerLens / QUALITY INTELLIGENCE";}
+function point(sel,click){var d=doc(),el=d&&d.querySelector(sel);if(!el)return;var r=el.getBoundingClientRect(),x=Math.min(innerWidth-35,Math.max(14,r.left+r.width*.55)),y=Math.min(innerHeight-35,Math.max(14,r.top+r.height*.55));cursor.style.transform="translate3d("+x+"px,"+y+"px,0)";cursor.classList.add("on");if(click){ring.style.left=(x+7)+"px";ring.style.top=(y+7)+"px";ring.classList.remove("tap");void ring.offsetWidth;ring.classList.add("tap")}}
+function focus(sel){var el=doc()&&doc().querySelector(sel);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
+function coaching(){var d=doc(),host=d&&d.getElementById("agent-inspection");if(!host||d.getElementById("showcase-coaching"))return;
+ var css=d.createElement("style");css.textContent="#showcase-coaching{margin:20px 0;border:1px solid #d6e2f6;border-radius:12px;background:white;padding:20px}#showcase-coaching h3{color:#192e52;font-size:20px}#showcase-coaching .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}#showcase-coaching .sc-missed{background:#fff6f5;border-left:3px solid #f46b60;padding:16px;border-radius:7px}#showcase-coaching .sc-help{background:#eff6ff;border-left:3px solid #4383e6;padding:16px;border-radius:7px}#showcase-coaching h4{margin:0 0 9px;color:#1a375b}#showcase-coaching p,#showcase-coaching li{font-size:13px;line-height:1.8}#showcase-coaching small{color:#697d9d}";d.head.appendChild(css);
+ var el=d.createElement("section");el.id="showcase-coaching";el.innerHTML='<small>REQUIRES ATTENTION</small><h3>Coaching Opportunities — Areas Requiring Improvement</h3><p><b>Agent: Awad Osman · Further assistance</b> — Needs coaching: 2 missed</p><div class="sc-grid"><div class="sc-missed"><h4>What was missed</h4><p>The assessment found that the agent did not demonstrate:</p><ul><li>Offers further help at the appropriate closing</li><li>Allows the customer opportunity to raise another need</li></ul></div><div class="sc-help"><h4>Recommended coaching</h4><p>Practise explicitly offering further assistance before closing and allowing the customer time to raise another request.</p></div></div><p><small>Illustrative evaluation using the coaching findings supplied for Awad Osman.</small></p>';host.appendChild(el)}
+async function scene(name,t){
+ var a=api();if(!a)throw Error("showcase bridge missing");
+ badge.classList.remove("show");
+ if(name==="opening"){a.reset();splash.classList.remove("off");cursor.classList.remove("on")}else splash.classList.add("off");
+ if(name==="home"){a.goto("overview");await waitOne(320);focus(".qa-dashboard-panel")}
+ if(name==="low-score"){a.goto("overview");await waitOne(300);focus('[data-dashboard-agent="Awad Osman"]');point('[data-dashboard-agent="Awad Osman"]',true)}
+ if(name==="studio"){a.goto("studio");point('#nav button[data-page="studio"]',true)}
+ if(name==="upload"){a.goto("studio");await waitOne(440);point('label.upload[for="file"]',true);await waitOne(1100);if(t===token){a.upload();badge.classList.add("show")}}
+ if(name==="evaluate"){a.goto("studio");await waitOne(280);point("#all",true);await waitOne(480);a.start()}
+ if(name==="processing"){a.start();for(var n=0;n<=12;n+=2){if(t!==token)return;a.tick(n);brand();await wait(1550,t)}}
+ if(name==="complete"){a.finish();point(".studio-v5-progress")}
+ if(name==="agents"){a.finish();a.goto("agents");point(".table-scroll")}
+ if(name==="awad"){a.selectAgent("Awad Osman");await waitOne(350);focus("#agent-inspection")}
+ if(name==="evidence"){a.selectAgent("Awad Osman");await waitOne(400);focus(".pb-status-summary")}
+ if(name==="coach"){a.selectAgent("Awad Osman");coaching();await waitOne(400);focus("#showcase-coaching")}
+ if(name==="recommend"){a.selectAgent("Awad Osman");coaching();await waitOne(400);focus("#showcase-coaching .sc-help")}
+ if(name==="hybrid"){a.upload();a.start();a.tick(6);point(".qmf-evaluator")}
+ if(name==="rubric"){a.finish();a.config("rubric");point(".qa-config-tabs")}
+ if(name==="references"){a.config("references");focus(".qa-ref-catalog")}
+ if(name==="end"){a.goto("overview");focus(".hero")}
+ brand();
+}
+async function wait(ms,t){var remain=ms,last=performance.now();while(remain>0&&t===token){await waitOne(90);var now=performance.now();if(!paused)remain-=(now-last)*speed;last=now;fill.style.width=(100*Math.max(0,(ms-remain)/ms))+"%"}return t===token}
+async function run(from){var t=++token;paused=false;btn.textContent="Ⅱ";for(var i=from;i<steps.length&&t===token;i++){index=i;var item=steps[i];fill.style.width="0%";try{await scene(item[0],t)}catch(e){console.error(e);document.getElementById("error").classList.add("show");return}document.getElementById("label").textContent=item[0];document.getElementById("message").textContent=item[2];cap.classList.add("show");if(!await wait(item[1],t))return}if(t===token)run(0)}
+document.getElementById("prev").onclick=function(){run(Math.max(0,index-1))};
+document.getElementById("next").onclick=function(){run(Math.min(steps.length-1,index+1))};
+btn.onclick=function(){paused=!paused;btn.textContent=paused?"▶":"Ⅱ"};
+document.getElementById("restart").onclick=function(){run(0)};
+document.getElementById("speed").onclick=function(){speed=speed===1?1.5:speed===1.5?2:.75;this.textContent=speed+"×"};
+document.getElementById("fullscreen").onclick=function(){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()};
+document.addEventListener("keydown",function(e){if(e.code==="Space"){e.preventDefault();btn.click()}else if(e.key==="ArrowRight")run(Math.min(steps.length-1,index+1));else if(e.key==="ArrowLeft")run(Math.max(0,index-1));else if(e.key.toLowerCase()==="r")run(0)});
+f.addEventListener("load",async function(){if(ready)return;for(var i=0;i<90;i++){if(api()){ready=true;brand();run(0);return}await waitOne(100)}document.getElementById("error").classList.add("show")});
+})();
+</script></body></html>
