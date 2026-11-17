@@ -23,12 +23,12 @@ var f=document.getElementById("app"),splash=document.getElementById("splash"),cu
 var index=0,token=0,paused=false,speed=1,ready=false;
 var steps=[
 ["opening",4500,"MAFerLens brings quality intelligence, evidence and coaching together."],
-["home",9000,"A BU Lead starts with last week's team and agent quality performance."],
+["home",9000,"The BU Lead checks the team's performance."],
 ["low-score",8500,"Awad Osman has a finalized 50% QA score — the case we'll inspect."],
 ["studio",7500,"Open the actual AI Evaluation Studio. Evaluate one complete transcript or a multi-interaction export."],
 ["upload",10500,"Choose a complete Genesys transcript export. This illustrative file contains 12 full interactions."],
 ["evaluate",6200,"Click Evaluate to run the batch."],
-["processing",19000,"The MAFerLens evaluator orb animates while deterministic and contextual checks are processed."],
+["processing",19000,""],
 ["complete",6500,"The batch queue updates with completed assessments and evidence coverage."],
 ["agents",8000,"Review all agents and their evaluated quality scores."],
 ["awad",11000,"Inspect Awad Osman's 50% combined score and evidence-linked results."],
@@ -72,7 +72,7 @@ async function scene(name,t){
  brand();
 }
 async function wait(ms,t){var remain=ms,last=performance.now();while(remain>0&&t===token){await waitOne(90);var now=performance.now();if(!paused)remain-=(now-last)*speed;last=now;fill.style.width=(100*Math.max(0,(ms-remain)/ms))+"%"}return t===token}
-async function run(from){var t=++token;paused=false;btn.textContent="Ⅱ";for(var i=from;i<steps.length&&t===token;i++){index=i;var item=steps[i];fill.style.width="0%";try{await scene(item[0],t)}catch(e){console.error(e);document.getElementById("error").classList.add("show");return}document.getElementById("label").textContent=item[0];document.getElementById("message").textContent=item[2];cap.classList.add("show");if(!await wait(item[1],t))return}if(t===token)run(0)}
+async function run(from){var t=++token;paused=false;btn.textContent="Ⅱ";for(var i=from;i<steps.length&&t===token;i++){index=i;var item=steps[i];fill.style.width="0%";try{await scene(item[0],t)}catch(e){console.error(e);document.getElementById("error").classList.add("show");return}document.getElementById("label").textContent=item[0];document.getElementById("message").textContent=item[2];cap.classList.toggle("show",Boolean(item[2]));if(!await wait(item[1],t))return}if(t===token)run(0)}
 document.getElementById("prev").onclick=function(){run(Math.max(0,index-1))};
 document.getElementById("next").onclick=function(){run(Math.min(steps.length-1,index+1))};
 btn.onclick=function(){paused=!paused;btn.textContent=paused?"▶":"Ⅱ"};
