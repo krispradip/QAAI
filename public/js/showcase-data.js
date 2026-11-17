@@ -58,13 +58,14 @@ export function makeShowcaseCalls(rubric){
     const awad=name==="Awad Osman";
     const d=new Date(now.getTime()-(n%6)*86400000-3600000);
     const id="SHOWCASE-INT-"+String(++n).padStart(3,"0");
+    const findings=findingsFor(rubric,awad);
     items.push({
       key:"maferlens-showcase:"+id,id,agent:name,
       businessUnit:"SHARE",language:awad?"ENG":(n%3===0?"AR":"ENG"),
       source:"maferlens-showcase-only",sampleData:true,
       start:d.toISOString(),duration:"05:"+String(12+n).padStart(2,"0"),
-      turns:demoTurns(),status:"COMPLETE",findings:findingsFor(rubric,awad),
-      score:awad ? overall(findingsFor(rubric,true),rubric) : {score:rated,observedScore:rated??100,coverage:(n%5===0?92:100)},
+      turns:demoTurns(),status:"COMPLETE",findings,
+      score:awad ? overall(findings,rubric) : {score:rated,observedScore:rated??100,coverage:(n%5===0?92:100)},
       ruleAssessment:{observedScore:100,coverage:100},
       meta:{rubricRevision:rubric.revision,criteria:rubric.criteria},
       referenceAudit:{revision:6,files:[]},
