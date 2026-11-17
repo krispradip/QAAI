@@ -1520,6 +1520,13 @@ if(showcaseMode){
       if(page==="config"){state.configTab="rubric";}
       state.page=page;render();scrollPageToTop(window,document);return true;
     },
+    prepareStudio(){
+      // Leave historical team data in originals; the upload demonstration starts empty.
+      state.calls=[];state.selected=null;state.running=false;state.phase="idle";
+      state.page="studio";state.evalProgress=null;state.importFeedback="";
+      state.message="Upload an agent transcript to begin";
+      render();scrollPageToTop(window,document);return frameState();
+    },
     selectAgent(name){
       const exists=state.calls.find(c=>c.agent===name)||originals.find(c=>c.agent===name);
       if(!exists)return false;
