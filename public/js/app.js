@@ -1067,6 +1067,7 @@ root.addEventListener("click", async event => {
   if (button.id === "clearBatch") {
     if(!canEvaluate(activeDemoUser()))return;
     if (state.running || !state.calls.length) return;
+    const wasSingle = state.calls.length === 1;
     if (!confirm("Remove all interactions, transcripts and saved QA assessments from this browser? This cannot be undone.")) return;
     void clearHistory().then(() => {
       state.calls = [];
@@ -1078,10 +1079,10 @@ root.addEventListener("click", async event => {
       state.overviewAgent = "";
       state.importFeedback = "";
       state.pasteDraft = "";
-      state.message = "Batch removed";
+      state.message = wasSingle ? "Interaction removed" : "Batch removed";
       state.phase = "idle";
       render();
-      notify("Batch removed. All browser-saved interactions and assessments have been cleared.");
+      notify(wasSingle ? "Interaction removed. Browser-saved assessments have been cleared." : "Batch removed. All browser-saved interactions and assessments have been cleared.");
     }).catch(e => notify("Could not remove batch: " + e.message, true));
     return;
   }
