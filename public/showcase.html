@@ -55,7 +55,7 @@ async function scene(name,t){
  if(name==="opening"){a.reset();splash.classList.remove("off");cursor.classList.remove("on")}else splash.classList.add("off");
  if(name==="home"){a.goto("overview");await waitOne(320);focus(".qa-dashboard-panel")}
  if(name==="low-score"){a.goto("overview");await waitOne(300);focus('[data-dashboard-agent="Awad Osman"]');point('[data-dashboard-agent="Awad Osman"]',true)}
- if(name==="studio"){a.goto("studio");point('#nav button[data-page="studio"]',true)}
+ if(name==="studio"){a.prepareStudio();point('#nav button[data-page="studio"]',true)}
  if(name==="upload"){a.goto("studio");await waitOne(440);point('label.upload[for="file"]',true);await waitOne(1100);if(t===token){a.upload();badge.classList.add("show")}}
  if(name==="evaluate"){a.goto("studio");await waitOne(280);point("#all",true);await waitOne(480);a.start()}
  if(name==="processing"){a.tick(0);brand();point(".qmf-evaluator")}
@@ -68,7 +68,7 @@ async function scene(name,t){
  if(name==="hybrid"){a.upload();a.start();a.tick(0);point(".qmf-evaluator")}
  if(name==="rubric"){a.finish();a.config("rubric");point(".qa-config-tabs")}
  if(name==="references"){a.config("references");focus(".qa-ref-catalog")}
- if(name==="end"){a.goto("overview");focus(".hero")}
+ if(name==="end"){a.reset();focus(".hero")}
  brand();
 }
 async function wait(ms,t){var remain=ms,last=performance.now();while(remain>0&&t===token){await waitOne(90);var now=performance.now();if(!paused)remain-=(now-last)*speed;last=now;fill.style.width=(100*Math.max(0,(ms-remain)/ms))+"%"}return t===token}
