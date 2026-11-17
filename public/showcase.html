@@ -8,10 +8,10 @@
 #controls{position:fixed;bottom:12px;right:12px;z-index:16;border-radius:12px;background:#091b35eb;color:#fff;display:flex;gap:5px;align-items:center;padding:7px 11px;box-shadow:0 5px 25px #0006;opacity:.25;transition:opacity .2s}#controls:hover,#controls:focus-within{opacity:1}#controls button{background:transparent;border:0;color:#fff;font-weight:850;min-width:28px;height:28px;border-radius:5px;cursor:pointer}#controls button:hover{background:#355b8e}#label{font-size:11px;min-width:110px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#progress{width:100px;height:3px;background:#38577d}#progress span{display:block;width:0;height:100%;background:#44e7ea}
 #upload{position:fixed;right:3%;top:17%;z-index:11;display:none;background:#efffff;border:1px solid #53d6e4;padding:14px;border-radius:8px;color:#144a75;font-size:12px;font-weight:750;box-shadow:0 12px 23px #0002}#upload.show{display:block}#note{position:fixed;left:11px;bottom:9px;font-size:10px;z-index:10;color:#7495b3;background:#102744b4;padding:3px 8px}#error{display:none;position:fixed;inset:0;z-index:30;background:#071a32;color:#fff;text-align:center;place-items:center}#error.show{display:grid}
 </style></head><body>
-<iframe id="app" src="./index.html?maferlens_showcase=1" title="Actual MAFerLens application"></iframe>
+<iframe id="app" src="./index.html?maferlens_showcase=1" title="MAFerLens application"></iframe>
 <div id="splash"><div><div id="orb">✦</div><h1>MAFer<em>Lens</em></h1><p>EVERY INTERACTION. MEASURABLE QUALITY.</p><p style="font-size:12px">SHARE · BU LEAD</p></div></div>
 <div id="cursor" aria-hidden="true"><svg viewBox="0 0 27 35"><path d="M2 1 2 29 9.5 22.2 14.1 32.6 20.1 30 15.3 19.5 25.6 19.4Z" fill="#fff" stroke="#152b4a" stroke-width="2"/></svg></div><div id="ring"></div>
-<div id="upload">✓ SHARE_Genesys_complete_export.csv · 12 complete interactions</div>
+<div id="upload">✓ 1 agent transcript · Awad Osman · showcase example</div>
 <div id="caption"><small>BU LEAD WORKFLOW</small><span id="message"></span></div>
 <div id="controls"><button id="prev" title="Previous">‹</button><button id="pause" title="Play / Pause">Ⅱ</button><button id="next" title="Next">›</button><span id="label">MAFerLens</span><div id="progress"><span></span></div><button id="speed">1×</button><button id="restart" title="Replay">↻</button><button id="fullscreen" title="Fullscreen">⛶</button></div>
 <div id="note">Original application UI · demonstration-only records · no AI calls</div>
@@ -24,15 +24,15 @@ var index=0,token=0,paused=false,speed=1,ready=false;
 var steps=[
 ["opening",4500,"MAFerLens brings quality intelligence, evidence and coaching together."],
 ["home",9000,"The BU Lead checks the team's performance."],
-["low-score",8500,"Awad Osman has a finalized 50% QA score — the case we'll inspect."],
-["studio",7500,"Open the actual AI Evaluation Studio. Evaluate one complete transcript or a multi-interaction export."],
-["upload",10500,"Choose a complete Genesys transcript export. This illustrative file contains 12 full interactions."],
-["evaluate",6200,"Click Evaluate to run the batch."],
+["low-score",8500,"The BU Lead identifies an Awad Osman closing issue and opens the assessment."],
+["studio",7500,"Open the AI Evaluation Studio to assess one agent transcript."],
+["upload",10500,"Load one illustrative agent transcript for this evaluation."],
+["evaluate",6200,"Click Evaluate to assess this one interaction."],
 ["processing",19000,""],
-["complete",6500,"The batch queue updates with completed assessments and evidence coverage."],
-["agents",8000,"Review all agents and their evaluated quality scores."],
-["awad",11000,"Inspect Awad Osman's 50% combined score and evidence-linked results."],
-["evidence",10500,"Examine missed criteria, score coverage and supporting dialogue."],
+["complete",6500,"The completed interaction shows its quality score and evidence coverage."],
+["agents",8000,"Review the assessed agent and its evidence-linked quality result."],
+["awad",11000,"Inspect Awad Osman's rubric-weighted score and supporting evidence."],
+["evidence",10500,"Compare the missed criterion against the other scored criteria. One miss does not halve the overall score."],
 ["coach",13000,"Awad missed two Further assistance closing checks."],
 ["recommend",10500,"Coaching: explicitly offer further assistance and give the customer time to raise another request."],
 ["hybrid",9000,"Rules perform deterministic checks. Contextual AI is used where interpretation is needed."],
@@ -58,14 +58,14 @@ async function scene(name,t){
  if(name==="studio"){a.goto("studio");point('#nav button[data-page="studio"]',true)}
  if(name==="upload"){a.goto("studio");await waitOne(440);point('label.upload[for="file"]',true);await waitOne(1100);if(t===token){a.upload();badge.classList.add("show")}}
  if(name==="evaluate"){a.goto("studio");await waitOne(280);point("#all",true);await waitOne(480);a.start()}
- if(name==="processing"){a.start();for(var n=0;n<=12;n+=2){if(t!==token)return;a.tick(n);brand();await wait(1550,t)}}
+ if(name==="processing"){a.tick(0);brand();point(".qmf-evaluator")}
  if(name==="complete"){a.finish();point(".studio-v5-progress")}
  if(name==="agents"){a.finish();a.goto("agents");point(".table-scroll")}
  if(name==="awad"){a.selectAgent("Awad Osman");await waitOne(350);focus("#agent-inspection")}
  if(name==="evidence"){a.selectAgent("Awad Osman");await waitOne(400);focus(".pb-status-summary")}
  if(name==="coach"){a.selectAgent("Awad Osman");coaching();await waitOne(400);focus("#showcase-coaching")}
  if(name==="recommend"){a.selectAgent("Awad Osman");coaching();await waitOne(400);focus("#showcase-coaching .sc-help")}
- if(name==="hybrid"){a.upload();a.start();a.tick(6);point(".qmf-evaluator")}
+ if(name==="hybrid"){a.upload();a.start();a.tick(0);point(".qmf-evaluator")}
  if(name==="rubric"){a.finish();a.config("rubric");point(".qa-config-tabs")}
  if(name==="references"){a.config("references");focus(".qa-ref-catalog")}
  if(name==="end"){a.goto("overview");focus(".hero")}
