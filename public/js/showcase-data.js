@@ -1,14 +1,15 @@
 /**
  * MAFerLens SHOWCASE ONLY.
- * Isolated, synthetic sample dialogue shaped for the existing UI renderers.
- * Agent display names and Awad Osman's 50% result/closing coaching come from
- * user-supplied demo screenshots. No AI calls, customer records or DB writes.
+ * Illustrative interaction data for the existing application UI.
+ * Scores are illustrative and must match the published rubric's weighted math;
+ * this is not an actual AI assessment or customer recording.
  */
+import { overall } from "./engine.js";
 const AGENTS=[
   ["Mariam Hithem Ibrahim Mahmoud",2,null],["Mariam Khaled",1,null],
   ["Farah Mohamed7",1,null],["Shahenda Azzam Abdelghany Mohamed",2,100],
   ["Marawan Mohamed Refaat Saeed",1,100],["Youssef Mohamed8",1,100],
-  ["Anfal Mohamed",2,null],["Awad Osman",1,50],["Hassan Aly1",1,100]
+  ["Anfal Mohamed",2,null],["Awad Osman",1,null],["Hassan Aly1",1,100]
 ];
 const safeText=[
   ["agent","Thank you for calling SHARE. How can I help you today?"],
@@ -63,7 +64,7 @@ export function makeShowcaseCalls(rubric){
       source:"maferlens-showcase-only",sampleData:true,
       start:d.toISOString(),duration:"05:"+String(12+n).padStart(2,"0"),
       turns:demoTurns(),status:"COMPLETE",findings:findingsFor(rubric,awad),
-      score:{score:rated,observedScore:rated??100,coverage:awad?100:(n%5===0?92:100)},
+      score:awad ? overall(findingsFor(rubric,true),rubric) : {score:rated,observedScore:rated??100,coverage:(n%5===0?92:100)},
       ruleAssessment:{observedScore:100,coverage:100},
       meta:{rubricRevision:rubric.revision,criteria:rubric.criteria},
       referenceAudit:{revision:6,files:[]},
@@ -86,7 +87,7 @@ export function makeShowcaseReferences(){
   }))};
 }
 export const AWAD_COACHING={
- agent:"Awad Osman",score:50,criterion:"Further assistance",
+ agent:"Awad Osman",criterion:"Further assistance",
  missed:[
   "Offers further help at the appropriate closing",
   "Allows the customer opportunity to raise another need"
