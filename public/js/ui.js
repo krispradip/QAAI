@@ -296,7 +296,8 @@ export function studio(state) {
   const ready = count(calls, "READY");
   const done = count(calls, "COMPLETE");
   const failures = count(calls, "ERROR");
-  const singleInteraction = calls.length === 1;
+  // A zero- or one-interaction workspace is not a multi-interaction batch.
+  const singleInteraction = calls.length <= 1;
 
   const handled = calls.filter(c =>
     [
