@@ -112,7 +112,7 @@ test("Approved Studio places two evaluation cards left, circular evaluator cente
   assert.match(intake,/Audio evaluation is not enabled/);
 });
 
-test("Approved Studio keeps all eight action controls in the requested single-line group order", () => {
+test("Approved Studio keeps the action controls in the requested single-line group order", () => {
   const rubric=defaultRubric();
   const call={key:"interaction:qa",id:"qa",agent:"Example Agent",status:"COMPLETE",
     findings:[{id:"greet7",status:"SCORED",score:100}],score:{score:100,coverage:100}};
@@ -123,8 +123,8 @@ test("Approved Studio keeps all eight action controls in the requested single-li
   const toolbar=html.slice(html.indexOf('class="studio-v5-toolbar"'),html.indexOf('class="studio-queue-row"'));
   const ids=[...toolbar.matchAll(/<button[^>]*id="([^"]+)"/g)].map(m=>m[1]);
   assert.deepEqual(ids,["all","stop","stopAfter","one","clearBatch","json","csv"]);
-  assert.match(toolbar,/EVALUATION[\s\S]*BATCH ACTIONS[\s\S]*EXPORT/);
-  assert.match(toolbar,/Remove all batch/);
+  assert.match(toolbar,/EVALUATION[\s\S]*INTERACTION ACTIONS[\s\S]*EXPORT/);
+  assert.match(toolbar,/Remove interaction/);
   assert.match(toolbar,/Export JSON/);
   assert.doesNotMatch(toolbar,/Threads to Q|rerunAll/);
   assert.ok(html.indexOf('studio-v5-dashboard')<html.indexOf('studio-v5-toolbar'));
