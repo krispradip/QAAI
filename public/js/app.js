@@ -1,4 +1,4 @@
-import { makeShowcaseCalls, makeShowcaseReferences } from "./showcase-data.js";
+import { makeShowcaseCalls, makeShowcaseReferences } from "./showcase-data.js?v=20261117-score-parity";
 const showcaseMode = typeof window !== "undefined" && !!window.location && new URLSearchParams(window.location.search || "").get("maferlens_showcase")==="1";
 import {renderQualityGovernance,renderQualityContextStrip} from "./presentation-quality-governance.js";
 import {canConfigureBU,normalizeBU,isShareBU,publishedBUrubric,savePublishedBUrubric,loadWorkingConfig,saveWorkingConfig,publishBaselineEvent,agentBaselineNotifications,validateScopedDataset} from "./presentation-baseline.js";
@@ -52,7 +52,7 @@ import {
   studio,
   agentsView,
   configuration
-} from "./ui.js";
+} from "./ui.js?v=20261117-single-transcript";
 
 const root = document.querySelector("#view");
 
