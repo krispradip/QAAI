@@ -296,6 +296,7 @@ export function studio(state) {
   const ready = count(calls, "READY");
   const done = count(calls, "COMPLETE");
   const failures = count(calls, "ERROR");
+  const singleInteraction = calls.length === 1;
 
   const handled = calls.filter(c =>
     [
@@ -381,13 +382,13 @@ export function studio(state) {
           <section class="studio-eval-details panel">
             <div class="kicker">EVALUATION DETAILS</div>
             <dl><div><dt>Rubric</dt><dd>${esc(state.rubric.name || "SHARE QA Rubric")} · Rev ${esc(state.rubric.revision)}</dd></div>
-            <div><dt>Interactions</dt><dd>${calls.length}</dd></div>
+            <div><dt>${singleInteraction ? "Interaction" : "Interactions"}</dt><dd>${calls.length}</dd></div>
             <div><dt>Status</dt><dd>${running?(state.stopAfterCurrent?"Stopping after current":"In progress"):ready?(message?.startsWith("Stopped —")?"Stopped · ":"Ready · ")+ready+" pending":done?"Last cycle complete":"Ready"}</dd></div></dl>
           </section>
         <section class="panel studio-v5-progress">
           <div class="panel-heading">
             <div>
-              <span class="kicker">LIVE BATCH PROGRESS</span>
+              <span class="kicker">${singleInteraction ? "LIVE EVALUATION PROGRESS" : "LIVE BATCH PROGRESS"}</span>
 
               <h3>Processing status</h3>
             </div>
@@ -435,7 +436,7 @@ export function studio(state) {
         </div>
       </div>
       </div><!-- studio-v5-dashboard -->
-      <div class="studio-v5-toolbar" role="group" aria-label="Evaluation and batch actions">
+      <div class="studio-v5-toolbar" role="group" aria-label="${singleInteraction ? "Evaluation and interaction actions" : "Evaluation and batch actions"}">
         <div class="studio-v5-action-group studio-v5-run">
           <span class="studio-v5-group-label">EVALUATION</span>
           <div class="studio-v5-actions">
@@ -450,12 +451,12 @@ export function studio(state) {
           </div>
         </div>
         <div class="studio-v5-action-group studio-v5-batch">
-          <span class="studio-v5-group-label">BATCH ACTIONS</span>
+          <span class="studio-v5-group-label">${singleInteraction ? "INTERACTION ACTIONS" : "BATCH ACTIONS"}</span>
           <div class="studio-v5-actions">
             <button class="secondary" id="one" ${canEvaluateSelected ? "" : "disabled"}>
               ${calls.find(c => c.key === selected)?.status === "COMPLETE" ? "↻ Re-evaluate selected" : "Evaluate selected"}
             </button>
-            <button class="secondary" id="clearBatch" ${!running && calls.length ? "" : "disabled"}>♧ Remove all batch</button>
+            <button class="secondary" id="clearBatch" ${!running && calls.length ? "" : "disabled"}>${singleInteraction ? "♧ Remove interaction" : "♧ Remove all batch"}</button>
             
           </div>
         </div>
