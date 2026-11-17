@@ -98,7 +98,7 @@ if(showcaseMode){
   state.calls=makeShowcaseCalls(state.rubric);
   state.references=makeShowcaseReferences();
   state.period={mode:"last7",from:"",to:""};
-  state.message="Completed illustrative demo batch";
+  state.message="Illustrative team assessment history";
 }
 
 const titles = {
@@ -109,7 +109,7 @@ const titles = {
 
   studio: [
     "AI Evaluation Studio",
-    "Upload one multi-agent export; evaluate one call or the full batch."
+    "Upload a single transcript or multi-interaction export. Evaluate the selected interaction or all pending interactions."
   ],
 
   agents: [
@@ -1508,7 +1508,9 @@ render();
 // Nothing here calls the AI service or writes mock calls to IndexedDB.
 if(showcaseMode){
   const originals=makeShowcaseCalls(state.rubric);
+  const demoTranscript=originals.find(c=>c.agent==="Awad Osman");
   const asReady=c=>({...c,status:"READY",score:null,findings:[],ruleAssessment:null});
+  const activeRun=()=>state.calls.length===1&&state.calls[0]?.key===demoTranscript?.key?[demoTranscript]:originals;
   function frameState(){return {page:state.page,running:state.running,done:state.calls.filter(c=>c.status==="COMPLETE").length,total:state.calls.length};}
   window.__MAFER_SHOWCASE__={
     status:frameState,
@@ -1518,40 +1520,43 @@ if(showcaseMode){
       state.page=page;render();scrollPageToTop(window,document);return true;
     },
     selectAgent(name){
-      if(!originals.some(c=>c.agent===name))return false;
-      state.calls=originals.map(c=>({...c}));
+      const exists=state.calls.find(c=>c.agent===name)||originals.find(c=>c.agent===name);
+      if(!exists)return false;
+      if(!state.calls.some(c=>c.agent===name))state.calls=originals.map(c=>({...c}));
       const item=state.calls.find(c=>c.agent===name);
       state.agentFilter=name;state.selected=item.key;state.resultTab="scorecard";
       state.running=false;state.phase="idle";state.page="agents";
       render();scrollPageToTop(window,document);return true;
     },
     upload(){
-      state.calls=originals.map(asReady);
+      state.calls=demoTranscript?[asReady(demoTranscript)]:[];
       state.selected=state.calls[0]?.key||null;
       state.page="studio";state.running=false;state.phase="idle";
-      state.message="12 complete Genesys interactions imported for evaluation";
-      state.importFeedback="12 interactions imported from a full Genesys transcript export";
+      state.message="Single transcript ready for assessment";
+      state.importFeedback="1 agent transcript imported (illustrative showcase data)";
       state.evalProgress=null;render();scrollPageToTop(window,document);
       return frameState();
     },
     start(){
       state.page="studio";state.running=true;state.phase="rules";
       state.message="Applying deterministic rules and checking transcript evidence";
-      state.evalProgress={started:Date.now(),total:originals.length,completed:0,callCount:originals.length};
+      const total=activeRun().length;
+      state.evalProgress={started:Date.now(),total,completed:0,callCount:total};
       render();return frameState();
     },
     tick(n){
-      const done=Math.max(0,Math.min(originals.length,Math.floor(n)));
-      state.calls=originals.map((c,i)=>i<done?{...c}:asReady(c));
-      state.page="studio";state.phase=done===originals.length?"complete":"ai";
-      state.message=done===originals.length?"Evaluation completed — quality results ready":"Contextual AI assessment · evidence validation";
-      state.running=done<originals.length;
-      state.evalProgress={started:Date.now()-Math.max(3000,done*1500),total:originals.length,completed:done,callCount:originals.length,
-        ...(done===originals.length?{ended:Date.now(),outcome:"complete"}:{})};
+      const items=activeRun();
+      const done=Math.max(0,Math.min(items.length,Math.floor(n)));
+      state.calls=items.map((c,i)=>i<done?{...c}:asReady(c));
+      state.page="studio";state.phase=done===items.length?"complete":"ai";
+      state.message=done===items.length?"Evaluation completed — quality results ready":"Contextual AI assessment · evidence validation";
+      state.running=done<items.length;
+      state.evalProgress={started:Date.now()-Math.max(3000,done*1500),total:items.length,completed:done,callCount:items.length,
+        ...(done===items.length?{ended:Date.now(),outcome:"complete"}:{})};
       render();return frameState();
     },
     finish(){
-      state.calls=originals.map(c=>({...c}));
+      state.calls=activeRun().map(c=>({...c}));
       state.running=false;state.phase="complete";state.message="Evaluation completed";
       state.evalProgress=null;state.page="studio";render();return frameState();
     },
